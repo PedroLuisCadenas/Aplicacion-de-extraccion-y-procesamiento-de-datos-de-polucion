@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from influx_reader import query_latest, query_history
 
-app = FastAPI(title="TFG Weather API")
+app = FastAPI(title="TFG Pollution API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -12,11 +12,11 @@ app.add_middleware(
 )
 
 
-@app.get("/api/weather/latest")
+@app.get("/api/pollution/latest")
 def get_latest():
     return query_latest()
 
 
-@app.get("/api/weather")
+@app.get("/api/pollution")
 def get_history(hours: int = 24):
     return query_history(hours=hours)
