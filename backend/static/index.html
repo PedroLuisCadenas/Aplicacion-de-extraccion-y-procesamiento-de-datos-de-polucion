@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de pruebas — TFG Polución</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; background: #0f1115; color: #e6e6e6; }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+  .card { border: 1px solid #2a3444; border-radius: 10px; padding: 1rem 1.2rem; background: #161a22; margin-bottom: 1.2rem; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 0.3rem; }
+  .card p { font-size: 0.85rem; color: #9aa4b2; margin: 0 0 0.8rem; }
+  .row { display: flex; align-items: center; gap: 0.6rem; }
+  button { background: #2d6cdf; color: white; border: none; border-radius: 6px; padding: 0.55rem 1.1rem; cursor: pointer; font-size: 0.9rem; }
+  button:hover { background: #3a7bef; }
+  button:disabled { background: #3a4557; cursor: default; }
+  input { background: #1f2733; color: #e6e6e6; border: 1px solid #3a4557; border-radius: 4px; padding: 0.4rem 0.5rem; width: 4rem; }
+  .result { margin-top: 0.8rem; }
+  .status { font-size: 0.8rem; margin-bottom: 0.4rem; }
+  .ok { color: #6bd08a; }
+  .err { color: #e07070; }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; background: #0f1115; border-radius: 6px; padding: 0.6rem 0.7rem; }
+</style>
+</head>
+<body>
+<h1>Panel de pruebas</h1>
+
+<div class="card">
+  <h2>Info del dispositivo</h2>
+  <p>Consulta los datos del sensor Kunak guardados (nombre, ubicación, cartuchos...).</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/device/info/latest')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Última medición</h2>
+  <p>Muestra el último dato de polución registrado.</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/device/readings/latest')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Histórico</h2>
+  <p>Muestra las mediciones de las últimas horas.</p>
+  <div class="row">
+    <input id="horas" type="number" value="24" min="1">
+    <span style="font-size:0.85rem; color:#9aa4b2;">horas</span>
+    <button onclick="consultar(this, '/api/device/readings?hours=' + document.getElementById('horas').value)">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<script>
+async function consultar(boton, path) {
+  const card = boton.closest('.card');
+  const resultado = card.querySelector('.result');
+  boton.disabled = true;
+  resultado.innerHTML = `<div class="status">Consultando...</div>`;
+
+  try {
+    const res = await fetch(path);
+    const text = await res.text();
+    let body;
+    try { body = JSON.stringify(JSON.parse(text), null, 2); } catch { body = text; }
+    if (res.ok) {
+      resultado.innerHTML = `<div class="status ok">Respuesta recibida (${res.status})</div><pre>${body}</pre>`;
+    } else {
+      resultado.innerHTML = `<div class="status err">Error (${res.status})</div><pre>${body}</pre>`;
+    }
+  } catch (e) {
+    resultado.innerHTML = `<div class="status err">No se pudo conectar con el servidor</div><pre>${e}</pre>`;
+  } finally {
+    boton.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

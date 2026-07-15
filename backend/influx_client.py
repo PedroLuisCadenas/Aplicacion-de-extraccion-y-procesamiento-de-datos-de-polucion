@@ -4,7 +4,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
 
 
-def write_data(data: dict, device_id: str = "unknown"):
+def write_readings(data: dict, device_id: str = "unknown"):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
@@ -28,3 +28,29 @@ def write_data(data: dict, device_id: str = "unknown"):
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
     client.close()
     print("Datos escritos en InfluxDB correctamente")
+
+
+def write_device_info(info: dict, device_id: str):
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    status = info.get("status", {})
+
+    point = (
+        Point("device_info")
+        .tag("device_id", device_id)
+        .field("tag", info.get("tag", ""))
+        .field("serial_number", info.get("serial_number", ""))
+    )
+
+    for field in ("battery_level", "rx_signal_level"):
+        value = status.get(field)
+        if value is not None:
+            try:
+                point = point.field(field, float(value))
+            except (TypeError, ValueError):
+                pass
+
+    write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
+    client.close()
+    print("Info del dispositivo escrita en InfluxDB correctamente")

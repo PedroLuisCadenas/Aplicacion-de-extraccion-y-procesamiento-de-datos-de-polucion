@@ -21,6 +21,9 @@ class KunakClient:
         response.raise_for_status()
         return response.json()
 
+    def get_user_info(self, user_id):
+        return self._get(f"users/{user_id}/info")
+
     def list_devices(self, user_id):
         return self._get(f"devices/list/{user_id}")
 
@@ -41,7 +44,7 @@ def _extract_sensors(device_info):
     return []
 
 
-def get_pollution_data():
+def get_device_readings():
     client = KunakClient()
     device_id = KUNAK_DEVICE_ID
 
