@@ -3,9 +3,14 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from influx_reader import query_latest_readings, query_readings_history, query_latest_device_info
+from influx_reader import (
+    query_latest_readings,
+    query_readings_history,
+    query_latest_device_info,
+    query_latest_user_info,
+)
 
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 app = FastAPI(title="TFG Pollution API")
 
@@ -15,6 +20,11 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+
+@app.get("/api/user/info")
+def get_latest_user_info():
+    return query_latest_user_info()
 
 
 @app.get("/api/device/info/latest")
@@ -32,7 +42,7 @@ def get_readings_history(hours: int = 24):
     return query_readings_history(hours=hours)
 
 
-app.mount("/ui", StaticFiles(directory=STATIC_DIR, html=True), name="ui")
+app.mount("/ui", StaticFiles(directory=FRONTEND_DIR, html=True), name="ui")
 
 
 if __name__ == "__main__":

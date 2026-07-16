@@ -25,6 +25,15 @@
 <h1>Panel de pruebas</h1>
 
 <div class="card">
+  <h2>Info del usuario</h2>
+  <p>Consulta los datos de la cuenta Kunak asociada (user_id).</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/user/info')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
   <h2>Info del dispositivo</h2>
   <p>Consulta los datos del sensor Kunak guardados (nombre, ubicación, cartuchos...).</p>
   <div class="row">

@@ -54,3 +54,24 @@ def write_device_info(info: dict, device_id: str):
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
     client.close()
     print("Info del dispositivo escrita en InfluxDB correctamente")
+
+
+def write_user_info(info: dict, user_id: str):
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    point = Point("user_info").tag("user_id", user_id)
+
+    for field, value in info.items():
+        if value is None or isinstance(value, (dict, list)):
+            continue
+        if isinstance(value, bool):
+            point = point.field(field, value)
+        elif isinstance(value, (int, float)):
+            point = point.field(field, float(value))
+        else:
+            point = point.field(field, str(value))
+
+    write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
+    client.close()
+    print("Info del usuario escrita en InfluxDB correctamente")

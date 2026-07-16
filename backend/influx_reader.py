@@ -46,6 +46,28 @@ def query_latest_device_info():
     return data
 
 
+def query_latest_user_info():
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+    query_api = client.query_api()
+
+    query = f'''
+        from(bucket: "{INFLUX_BUCKET}")
+          |> range(start: -1h)
+          |> filter(fn: (r) => r._measurement == "user_info")
+          |> last()
+    '''
+
+    result = query_api.query(query=query, org=INFLUX_ORG)
+    client.close()
+
+    data = {}
+    for table in result:
+        for record in table.records:
+            data[record.get_field()] = record.get_value()
+
+    return data
+
+
 def query_readings_history(hours: int = 24):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()

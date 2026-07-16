@@ -9,5 +9,4 @@ INFLUX_BUCKET = "pruebas"
 KUNAK_BASE_URL = "https://kunakcloud.com/openAPIv0/v1/rest"
 KUNAK_USERNAME = "<usuario-web-kunak>"
 KUNAK_PASSWORD = "<contraseña-web-kunak>"
-KUNAK_USER_ID = ""                       # obtener ejecutando: python kunak_discover.py
 KUNAK_DEVICE_ID = ""                     # obtener ejecutando: python kunak_discover.py
