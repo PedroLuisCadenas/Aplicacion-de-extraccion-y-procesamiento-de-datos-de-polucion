@@ -14,6 +14,7 @@
   button:hover { background: #3a7bef; }
   button:disabled { background: #3a4557; cursor: default; }
   input { background: #1f2733; color: #e6e6e6; border: 1px solid #3a4557; border-radius: 4px; padding: 0.4rem 0.5rem; width: 4rem; }
+  select { background: #1f2733; color: #e6e6e6; border: 1px solid #3a4557; border-radius: 4px; padding: 0.4rem 0.5rem; min-width: 12rem; }
   .result { margin-top: 0.8rem; }
   .status { font-size: 0.8rem; margin-bottom: 0.4rem; }
   .ok { color: #6bd08a; }
@@ -62,7 +63,44 @@
   <div class="result"></div>
 </div>
 
+<div class="card">
+  <h2>Lecturas por sensor</h2>
+  <p>Selecciona un sensor del dispositivo y consulta sus lecturas directamente desde la API de Kunak.</p>
+  <div class="row">
+    <select id="sensorSelect"><option value="">Cargando sensores...</option></select>
+    <input id="sensorHoras" type="number" value="24" min="1">
+    <span style="font-size:0.85rem; color:#9aa4b2;">horas</span>
+    <button onclick="consultarSensor(this)">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
 <script>
+async function cargarSensores() {
+  const select = document.getElementById('sensorSelect');
+  try {
+    const res = await fetch('/api/device/elements');
+    const elementos = await res.json();
+    if (Array.isArray(elementos) && elementos.length) {
+      select.innerHTML = elementos
+        .map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`)
+        .join('');
+    } else {
+      select.innerHTML = '<option value="">Sin sensores disponibles</option>';
+    }
+  } catch (e) {
+    select.innerHTML = '<option value="">Error al cargar sensores</option>';
+  }
+}
+cargarSensores();
+
+async function consultarSensor(boton) {
+  const elementId = document.getElementById('sensorSelect').value;
+  const horas = document.getElementById('sensorHoras').value;
+  if (!elementId) return;
+  await consultar(boton, `/api/device/elements/${encodeURIComponent(elementId)}/readings?hours=${horas}`);
+}
+
 async function consultar(boton, path) {
   const card = boton.closest('.card');
   const resultado = card.querySelector('.result');
