@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de pruebas — TFG Polución</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; background: #0f1115; color: #e6e6e6; }
+  h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+  .card { border: 1px solid #2a3444; border-radius: 10px; padding: 1rem 1.2rem; background: #161a22; margin-bottom: 1.2rem; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 0.3rem; }
+  .card p { font-size: 0.85rem; color: #9aa4b2; margin: 0 0 0.8rem; }
+  .row { display: flex; align-items: center; gap: 0.6rem; }
+  button { background: #2d6cdf; color: white; border: none; border-radius: 6px; padding: 0.55rem 1.1rem; cursor: pointer; font-size: 0.9rem; }
+  button:hover { background: #3a7bef; }
+  button:disabled { background: #3a4557; cursor: default; }
+  input { background: #1f2733; color: #e6e6e6; border: 1px solid #3a4557; border-radius: 4px; padding: 0.4rem 0.5rem; width: 4rem; }
+  select { background: #1f2733; color: #e6e6e6; border: 1px solid #3a4557; border-radius: 4px; padding: 0.4rem 0.5rem; min-width: 12rem; }
+  .result { margin-top: 0.8rem; }
+  .status { font-size: 0.8rem; margin-bottom: 0.4rem; }
+  .ok { color: #6bd08a; }
+  .err { color: #e07070; }
+  .empty { font-size: 0.85rem; color: #9aa4b2; }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; background: #0f1115; border-radius: 6px; padding: 0.6rem 0.7rem; }
+  .table-wrap { max-width: 100%; overflow-x: auto; border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.35rem 0.7rem; border-bottom: 1px solid #2a3444; white-space: nowrap; }
+  th { color: #9aa4b2; font-weight: 600; background: #12151c; position: sticky; top: 0; }
+  tbody tr:hover { background: #1c2330; }
+</style>
+</head>
+<body>
+<h1>Panel de pruebas</h1>
+
+<div class="card">
+  <h2>Info del usuario</h2>
+  <p>Consulta los datos de la cuenta Kunak asociada (user_id).</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/user/info')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Info del dispositivo</h2>
+  <p>Consulta los datos del sensor Kunak guardados (nombre, ubicación, cartuchos...).</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/device/info/latest')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Última medición</h2>
+  <p>Muestra el último dato de polución registrado.</p>
+  <div class="row">
+    <button onclick="consultar(this, '/api/device/readings/latest')">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Histórico</h2>
+  <p>Muestra las mediciones de las últimas horas.</p>
+  <div class="row">
+    <input id="horas" type="number" value="24" min="1">
+    <span style="font-size:0.85rem; color:#9aa4b2;">horas</span>
+    <button onclick="consultar(this, '/api/device/readings?hours=' + document.getElementById('horas').value)">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Lecturas por sensor</h2>
+  <p>Selecciona un sensor del dispositivo y consulta sus lecturas directamente desde la API de Kunak.</p>
+  <div class="row">
+    <select id="sensorSelect"><option value="">Cargando sensores...</option></select>
+    <input id="sensorHoras" type="number" value="24" min="1">
+    <span style="font-size:0.85rem; color:#9aa4b2;">horas</span>
+    <button onclick="consultarSensor(this)">Consultar</button>
+  </div>
+  <div class="result"></div>
+</div>
+
+<script>
+const TIME_KEYS = new Set(['time', 'ts', 'timestamp', 'timestamp_ms']);
+
+function isTimeKey(key) {
+  return TIME_KEYS.has(key) || key.endsWith('_ms') || key.endsWith('_time');
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function fmtDate(value) {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return escapeHtml(value);
+  return d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'medium' });
+}
+
+function fmtValue(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+  const n = Number(value);
+  if (value !== '' && !isNaN(n) && typeof value !== 'object') {
+    return Number.isInteger(n) ? String(n) : n.toFixed(2);
+  }
+  return escapeHtml(value);
+}
+
+function renderObjectTable(obj) {
+  const rows = Object.entries(obj).map(([key, value]) => {
+    const display = isTimeKey(key) ? fmtDate(value) : fmtValue(value);
+    return `<tr><td>${escapeHtml(key)}</td><td>${display}</td></tr>`;
+  }).join('');
+  return `<div class="table-wrap"><table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderReadingsList(list) {
+  const sorted = [...list].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const rows = sorted.map(r => `<tr><td>${fmtDate(r.ts)}</td><td>${fmtValue(r.value)}</td></tr>`).join('');
+  return `<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderHistoryTable(rows) {
+  const cols = [];
+  const seen = new Set();
+  rows.forEach(r => Object.keys(r).forEach(k => {
+    if (k !== 'time' && !seen.has(k)) { seen.add(k); cols.push(k); }
+  }));
+
+  const sorted = [...rows].sort((a, b) => new Date(b.time) - new Date(a.time));
+  const header = '<th>Fecha</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('');
+  const body = sorted.map(r => {
+    const cells = cols.map(c => `<td>${fmtValue(r[c])}</td>`).join('');
+    return `<tr><td>${fmtDate(r.time)}</td>${cells}</tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function renderResult(container, data) {
+  const isEmptyObject = data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0;
+  if (data === null || data === undefined || isEmptyObject || (Array.isArray(data) && data.length === 0)) {
+    container.innerHTML = '<p class="empty">Sin datos.</p>';
+    return;
+  }
+
+  if (Array.isArray(data)) {
+    if ('ts' in data[0] && 'value' in data[0]) {
+      container.innerHTML = renderReadingsList(data);
+    } else if ('time' in data[0]) {
+      container.innerHTML = renderHistoryTable(data);
+    } else {
+      container.innerHTML = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+    }
+    return;
+  }
+
+  if (typeof data === 'object') {
+    container.innerHTML = renderObjectTable(data);
+    return;
+  }
+
+  container.innerHTML = `<pre>${escapeHtml(String(data))}</pre>`;
+}
+
+async function cargarSensores() {
+  const select = document.getElementById('sensorSelect');
+  try {
+    const res = await fetch('/api/device/elements');
+    const elementos = await res.json();
+    if (Array.isArray(elementos) && elementos.length) {
+      select.innerHTML = elementos
+        .map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`)
+        .join('');
+    } else {
+      select.innerHTML = '<option value="">Sin sensores disponibles</option>';
+    }
+  } catch (e) {
+    select.innerHTML = '<option value="">Error al cargar sensores</option>';
+  }
+}
+cargarSensores();
+
+async function consultarSensor(boton) {
+  const elementId = document.getElementById('sensorSelect').value;
+  const horas = document.getElementById('sensorHoras').value;
+  if (!elementId) return;
+  await consultar(boton, `/api/device/elements/${encodeURIComponent(elementId)}/readings?hours=${horas}`);
+}
+
+async function consultar(boton, path) {
+  const card = boton.closest('.card');
+  const resultado = card.querySelector('.result');
+  boton.disabled = true;
+  resultado.innerHTML = `<div class="status">Consultando...</div>`;
+
+  try {
+    const res = await fetch(path);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = undefined; }
+
+    if (res.ok) {
+      resultado.innerHTML = `<div class="status ok">Respuesta recibida (${res.status})</div><div class="body"></div>`;
+      const body = resultado.querySelector('.body');
+      if (data !== undefined) {
+        renderResult(body, data);
+      } else {
+        body.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+      }
+    } else {
+      resultado.innerHTML = `<div class="status err">Error (${res.status})</div><pre>${escapeHtml(text)}</pre>`;
+    }
+  } catch (e) {
+    resultado.innerHTML = `<div class="status err">No se pudo conectar con el servidor</div><pre>${escapeHtml(e)}</pre>`;
+  } finally {
+    boton.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
