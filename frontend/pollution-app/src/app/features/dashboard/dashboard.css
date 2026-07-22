@@ -1,0 +1,22 @@
+.dashboard {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+td,
+th {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.error {
+  color: #b00020;
+}

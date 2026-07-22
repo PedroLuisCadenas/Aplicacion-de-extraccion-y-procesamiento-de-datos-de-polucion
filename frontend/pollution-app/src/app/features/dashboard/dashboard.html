@@ -1,0 +1,45 @@
+<section class="dashboard">
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <h2>Dispositivo</h2>
+  @if (deviceInfoEntries().length) {
+    <table>
+      <tbody>
+        @for (entry of deviceInfoEntries(); track entry[0]) {
+          <tr>
+            <td>{{ entry[0] }}</td>
+            <td>{{ entry[1] }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p>Cargando información del dispositivo…</p>
+  }
+
+  <h2>Últimas lecturas</h2>
+  @if (loading()) {
+    <p>Cargando lecturas…</p>
+  } @else if (sensorEntries().length) {
+    <table>
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of sensorEntries(); track entry[0]) {
+          <tr>
+            <td>{{ entry[0] }}</td>
+            <td>{{ entry[1] }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p>Sin lecturas recientes.</p>
+  }
+</section>
