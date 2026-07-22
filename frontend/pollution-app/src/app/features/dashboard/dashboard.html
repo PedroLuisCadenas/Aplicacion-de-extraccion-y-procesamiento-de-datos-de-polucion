@@ -3,6 +3,22 @@
     <p class="error">{{ error() }}</p>
   }
 
+  <h2>Usuario</h2>
+  @if (userInfoEntries().length) {
+    <table>
+      <tbody>
+        @for (entry of userInfoEntries(); track entry[0]) {
+          <tr>
+            <td>{{ entry[0] }}</td>
+            <td>{{ entry[1] }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p>Cargando información del usuario…</p>
+  }
+
   <h2>Dispositivo</h2>
   @if (deviceInfoEntries().length) {
     <table>

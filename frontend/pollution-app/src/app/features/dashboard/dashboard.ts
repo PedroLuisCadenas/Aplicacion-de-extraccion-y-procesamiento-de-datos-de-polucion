@@ -11,12 +11,17 @@ export class Dashboard implements OnInit {
   private readonly api = inject(Api);
 
   protected readonly deviceInfo = signal<DeviceInfo | null>(null);
+  protected readonly userInfo = signal<any | null>(null);
   protected readonly readings = signal<LatestReadings | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
   protected readonly deviceInfoEntries = computed(() =>
     Object.entries(this.deviceInfo() ?? {}),
+  );
+
+  protected readonly userInfoEntries = computed(() =>
+    Object.entries(this.userInfo() ?? {}),
   );
 
   protected readonly sensorEntries = computed(() =>
@@ -37,6 +42,13 @@ export class Dashboard implements OnInit {
       error: () => {
         this.error.set('No se han podido cargar las últimas lecturas.');
         this.loading.set(false);
+      },
+    });
+
+    this.api.getUserInfo().subscribe({
+      next: (info) => this.userInfo.set(info),
+      error: () => {
+        this.error.set('No se ha podido cargar la información del usuario.');
       },
     });
   }
