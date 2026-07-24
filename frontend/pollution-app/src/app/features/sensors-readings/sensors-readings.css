@@ -1,0 +1,101 @@
+.sensors-readings {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.sensors-readings h2 {
+  color: #1b3a2f;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.controls select,
+.controls input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #cfd8d4;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.controls select:focus,
+.controls input:focus {
+  outline: none;
+  border-color: #1b3a2f;
+  box-shadow: 0 0 0 2px rgba(27, 58, 47, 0.15);
+}
+
+.controls input[type="number"] {
+  width: 6rem;
+}
+
+.controls button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #1b3a2f;
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.controls button:hover {
+  background: #24503f;
+}
+
+.controls button:active {
+  background: #142c24;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 500;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: #1b3a2f;
+  color: #fff;
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+}
+
+tbody td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid #e6e9e8;
+}
+
+tbody tr:nth-child(even) {
+  background: #f4f7f6;
+}
+
+tbody tr:hover {
+  background: #e8f0ec;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}

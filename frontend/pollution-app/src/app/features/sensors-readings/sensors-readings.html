@@ -1,36 +1,44 @@
-<select [(ngModel)] = "selectedElementId">
-  <option value="">Selecciona un sensor</option>
-  @for (element of deviceElements(); track element.id){
-    <option [value]="element.id">{{ element.name }}</option>
-  }
-</select>
+<section class="sensors-readings">
+  <h2>Lecturas por sensor</h2>
 
-<input type="number" [(ngModel)] = "hours" placeholder="Horas">
-<button (click)="loadReadings()">Obtener lecturas</button>
-
-@if (error()) {
-  <p class="error">{{ error() }}</p>
-}
-
-@if (loading()) {
-  <p>Cargando...</p>
-}
-
-@if (readings().length > 0) {
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Valor</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (r of readings(); track r.ts) {
-        <tr>
-          <td>{{ r.ts | date: 'short' }}</td>
-          <td>{{ r.value }}</td>
-        </tr>
+  <div class="controls">
+    <select [(ngModel)] = "selectedElementId">
+      <option value="">Selecciona un sensor</option>
+      @for (element of deviceElements(); track element.id){
+        <option [value]="element.id">{{ element.name }}</option>
       }
-    </tbody>
-  </table>
-}
+    </select>
+
+    <input type="number" [(ngModel)] = "hours" placeholder="Horas">
+    <button (click)="loadReadings()">Obtener lecturas</button>
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Cargando...</p>
+  }
+
+  @if (readings().length > 0) {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of readings(); track r.ts) {
+            <tr>
+              <td>{{ r.ts | date: 'short' }}</td>
+              <td>{{ r.value }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

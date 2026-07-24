@@ -3,10 +3,10 @@
 </header>
 
 <main>
-  <nav>
+  <nav class="app-nav">
     <ul>
-      <li><a routerLink="/">Dashboard</a></li>
-      <li><a routerLink="/sensors-readings">Lecturas de Sensores</a></li>
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
+      <li><a routerLink="/sensors-readings" routerLinkActive="active">Lecturas de Sensores</a></li>
     </ul>
   </nav>
   <router-outlet />
