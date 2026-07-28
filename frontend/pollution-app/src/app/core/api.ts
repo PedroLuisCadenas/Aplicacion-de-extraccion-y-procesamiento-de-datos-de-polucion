@@ -30,6 +30,10 @@ export interface ElementRead {
   value: number;
 }
 
+export type ReadingsHistoryParams =
+  | { hours: number }
+  | { start: string; end?: string };
+
 @Injectable({
   providedIn: 'root',
 })
@@ -49,9 +53,9 @@ export class Api {
     return this.http.get<LatestReadings>(`${this.baseUrl}/device/readings/latest`);
   }
 
-  getReadingsHistory(hours = 24): Observable<ReadingsHistoryPoint[]> {
+  getReadingsHistory(params: ReadingsHistoryParams): Observable<ReadingsHistoryPoint[]> {
     return this.http.get<ReadingsHistoryPoint[]>(`${this.baseUrl}/device/readings`, {
-      params: { hours },
+      params: params as Record<string, string | number>,
     });
   }
 

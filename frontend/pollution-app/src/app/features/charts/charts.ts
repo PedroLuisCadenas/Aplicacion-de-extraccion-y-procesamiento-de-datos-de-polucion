@@ -1,9 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { Api, DeviceElement } from '../../core/api';
+import { Api, DeviceElement, ReadingsHistoryParams } from '../../core/api';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
+
+type RangeMode = 'hours' | 'range';
 
 @Component({
   selector: 'app-charts',
@@ -16,7 +18,10 @@ export class Charts implements OnInit {
 
   protected readonly deviceElements = signal<DeviceElement[]>([]);
   protected readonly selectedIds = signal<Set<string>>(new Set());
+  protected readonly mode = signal<RangeMode>('hours');
   protected readonly hours = signal<number>(24);
+  protected readonly rangeStart = signal<string>('');
+  protected readonly rangeEnd = signal<string>('');
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly lineChartData = signal<ChartData<'line', { x: number; y: number }[]>>({
@@ -58,10 +63,24 @@ export class Charts implements OnInit {
       return;
     }
 
+    let params: ReadingsHistoryParams;
+    if (this.mode() === 'hours') {
+      params = { hours: this.hours() };
+    } else {
+      if (!this.rangeStart()) {
+        this.error.set('Indica al menos la fecha/hora de inicio del rango.');
+        return;
+      }
+      params = {
+        start: new Date(this.rangeStart()).toISOString(),
+        ...(this.rangeEnd() ? { end: new Date(this.rangeEnd()).toISOString() } : {}),
+      };
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.getReadingsHistory(this.hours()).subscribe({
+    this.api.getReadingsHistory(params).subscribe({
       next: (rows) => {
         const datasets = this.deviceElements()
           .filter((element) => this.selectedIds().has(element.id))

@@ -11,7 +11,34 @@
       </label>
     }
 
-    <input type="number" [ngModel] = "hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+    <div class="range-mode">
+      <label>
+        <input type="radio" name="rangeMode" value="hours"
+            [ngModel]="mode()" (ngModelChange)="mode.set($event)">
+        Últimas N horas
+      </label>
+      <label>
+        <input type="radio" name="rangeMode" value="range"
+            [ngModel]="mode()" (ngModelChange)="mode.set($event)">
+        Rango de fechas
+      </label>
+    </div>
+
+    @if (mode() === 'hours') {
+      <input type="number" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+    }
+
+    @if (mode() === 'range') {
+      <label>
+        Desde
+        <input type="datetime-local" [ngModel]="rangeStart()" (ngModelChange)="rangeStart.set($event)">
+      </label>
+      <label>
+        Hasta (opcional)
+        <input type="datetime-local" [ngModel]="rangeEnd()" (ngModelChange)="rangeEnd.set($event)">
+      </label>
+    }
+
     <button (click)="generateChart()">Generar gráfica</button>
   </div>
 
