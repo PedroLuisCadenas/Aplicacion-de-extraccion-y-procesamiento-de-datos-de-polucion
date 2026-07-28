@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from api_client import list_device_elements, get_element_history
@@ -40,8 +40,11 @@ def get_latest_readings():
 
 
 @app.get("/api/device/readings")
-def get_readings_history(hours: int = 24):
-    return query_readings_history(hours=hours)
+def get_readings_history(hours: int = 24, start: str | None = None, end: str | None = None):
+    try:
+        return query_readings_history(hours=hours, start=start, end=end)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido (se espera ISO 8601)")
 
 
 @app.get("/api/device/elements")
