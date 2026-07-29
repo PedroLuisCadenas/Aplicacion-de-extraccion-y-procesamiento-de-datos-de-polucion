@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { Api, DeviceElement, ReadingsHistoryParams } from '../../core/api';
@@ -6,6 +6,18 @@ import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 
 type RangeMode = 'hours' | 'range';
+
+interface SensorStat {
+  id: string;
+  label: string;
+  avg: number;
+  min: number;
+  max: number;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 @Component({
   selector: 'app-charts',
@@ -27,6 +39,10 @@ export class Charts implements OnInit {
   protected readonly lineChartData = signal<ChartData<'line', { x: number; y: number }[]>>({
     datasets: [],
   });
+  protected readonly intervalStats = signal<SensorStat[]>([]);
+  protected readonly isPickerOpen = signal(false);
+  protected readonly pickerSearch = signal('');
+  protected readonly draftSelectedIds = signal<Set<string>>(new Set());
 
   protected readonly lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
@@ -47,6 +63,15 @@ export class Charts implements OnInit {
     });
   }
 
+  protected readonly selectedSensorChips = computed(() =>
+    this.deviceElements().filter((element) => this.selectedIds().has(element.id)),
+  );
+
+  protected readonly filteredElements = computed(() => {
+    const search = this.pickerSearch().toLowerCase();
+    return this.deviceElements().filter((element) => element.name.toLowerCase().includes(search));
+  });
+
   toggleSensor(id: string): void {
     const selectedIds = new Set(this.selectedIds());
     if (selectedIds.has(id)) {
@@ -55,6 +80,34 @@ export class Charts implements OnInit {
       selectedIds.add(id);
     }
     this.selectedIds.set(selectedIds);
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set());
+  }
+
+  openPicker(): void {
+    this.draftSelectedIds.set(new Set(this.selectedIds()));
+    this.isPickerOpen.set(true);
+  }
+
+  closePicker(): void {
+    this.isPickerOpen.set(false);
+  }
+
+  applyPicker(): void {
+    this.selectedIds.set(new Set(this.draftSelectedIds()));
+    this.isPickerOpen.set(false);
+  }
+
+  toggleDraftSensor(id: string): void {
+    const draftSelectedIds = new Set(this.draftSelectedIds());
+    if (draftSelectedIds.has(id)) {
+      draftSelectedIds.delete(id);
+    } else {
+      draftSelectedIds.add(id);
+    }
+    this.draftSelectedIds.set(draftSelectedIds);
   }
 
   generateChart(): void {
@@ -94,11 +147,35 @@ export class Charts implements OnInit {
               })),
           }));
 
+        const stats = this.deviceElements()
+          .filter((element) => this.selectedIds().has(element.id))
+          .map((element): SensorStat | null => {
+            const values = rows
+              .filter((row) => row[element.id] != null)
+              .map((row) => row[element.id] as number);
+
+            if (values.length === 0) {
+              return null;
+            }
+
+            const sum = values.reduce((total, value) => total + value, 0);
+            return {
+              id: element.id,
+              label: element.name,
+              avg: round2(sum / values.length),
+              min: round2(Math.min(...values)),
+              max: round2(Math.max(...values)),
+            };
+          })
+          .filter((stat): stat is SensorStat => stat !== null);
+
         this.lineChartData.set({ datasets });
+        this.intervalStats.set(stats);
         this.loading.set(false);
       },
       error: () => {
         this.error.set('No se han podido cargar los datos del histórico.');
+        this.intervalStats.set([]);
         this.loading.set(false);
       },
     });

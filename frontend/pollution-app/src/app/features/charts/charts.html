@@ -1,15 +1,21 @@
 <section class="charts">
-  <h2>Gráficas</h2>
+  <h2>Comparador de Sensores</h2>
+
+  @if (selectedSensorChips().length) {
+    <div class="chip-row">
+      <span class="chip-row-label">Sensores seleccionados ({{ selectedSensorChips().length }})</span>
+      @for (element of selectedSensorChips(); track element.id) {
+        <span class="chip">
+          {{ element.name }}
+          <button type="button" (click)="toggleSensor(element.id)">×</button>
+        </span>
+      }
+      <button type="button" class="clear-link" (click)="clearSelection()">Limpiar todo</button>
+    </div>
+  }
 
   <div class="sensor-picker">
-    @for (element of deviceElements(); track element.id) {
-      <label>
-        <input type="checkbox"
-            [checked]="selectedIds().has(element.id)"
-            (change)="toggleSensor(element.id)">
-        {{ element.name }}
-      </label>
-    }
+    <button type="button" (click)="openPicker()">Seleccionar sensores</button>
 
     <div class="range-mode">
       <label>
@@ -52,11 +58,62 @@
 
   @if (lineChartData().datasets.length > 0) {
     <div class="chart-wrapper">
-        <canvas baseChart
-          [data]="lineChartData()"
-          [options]="lineChartOptions"
-          type="line">
-        </canvas>
+      <canvas baseChart
+        [data]="lineChartData()"
+        [options]="lineChartOptions"
+        type="line">
+      </canvas>
+    </div>
+  }
+
+  @if (intervalStats().length > 0) {
+    <h3>Estadísticas del intervalo</h3>
+    <div class="stats-grid">
+      @for (stat of intervalStats(); track stat.id){
+        <div class="stats-card">
+          <h4>{{ stat.label }}</h4>
+          <p>Promedio: {{ stat.avg }}</p>
+          <p>Mínimo: {{ stat.min }}</p>
+          <p>Máximo: {{ stat.max }}</p>
+        </div>
+      }
+    </div>
+  }
+
+  @if (isPickerOpen()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>
+          Seleccionar Sensores
+          <button type="button" class="close-button" (click)="closePicker()">×</button>
+        </h3>
+
+        <input
+          type="text"
+          [ngModel]="pickerSearch()"
+          (ngModelChange)="pickerSearch.set($event)"
+          placeholder="Buscar sensores"
+        />
+
+        <div class="picker-list">
+          @for (element of filteredElements(); track element.id) {
+            <label>
+              <input
+                type="checkbox"
+                [checked]="draftSelectedIds().has(element.id)"
+                (change)="toggleDraftSensor(element.id)"
+              />
+              {{ element.name }}
+            </label>
+          }
+        </div>
+
+        <footer>
+          <p>Sensores seleccionados: {{ draftSelectedIds().size }}</p>
+          <button type="button" (click)="closePicker()">Cancelar</button>
+          <button type="button" (click)="applyPicker()">Aplicar</button>
+        </footer>
+      </div>
     </div>
   }
 </section>

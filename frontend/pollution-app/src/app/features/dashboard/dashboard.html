@@ -3,65 +3,45 @@
     <p class="error">{{ error() }}</p>
   }
 
-  <h2>Usuario</h2>
-  @if (userInfoEntries().length) {
-    <div class="table-wrapper">
-      <table>
-        <tbody>
-          @for (entry of userInfoEntries(); track entry[0]) {
-            <tr>
-              <td>{{ entry[0] }}</td>
-              <td>{{ entry[1] }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <div class="info-grid">
+    <div class="info-card">
+      <h2>Usuario</h2>
+      @if (userInfoEntries().length) {
+        <div class="table-wrapper">
+          <table>
+            <tbody>
+              @for (entry of userInfoEntries(); track entry[0]) {
+                <tr>
+                  <td>{{ entry[0] }}</td>
+                  <td>{{ entry[1] }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p>Cargando información del usuario…</p>
+      }
     </div>
-  } @else {
-    <p>Cargando información del usuario…</p>
-  }
 
-  <h2>Dispositivo</h2>
-  @if (deviceInfoEntries().length) {
-    <div class="table-wrapper">
-      <table>
-        <tbody>
-          @for (entry of deviceInfoEntries(); track entry[0]) {
-            <tr>
-              <td>{{ entry[0] }}</td>
-              <td>{{ entry[1] }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <div class="info-card">
+      <h2>Dispositivo</h2>
+      @if (deviceInfoEntries().length) {
+        <div class="table-wrapper">
+          <table>
+            <tbody>
+              @for (entry of deviceInfoEntries(); track entry[0]) {
+                <tr>
+                  <td>{{ entry[0] }}</td>
+                  <td>{{ entry[1] }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p>Cargando información del dispositivo…</p>
+      }
     </div>
-  } @else {
-    <p>Cargando información del dispositivo…</p>
-  }
-
-  <h2>Últimas lecturas</h2>
-  @if (loading()) {
-    <p>Cargando lecturas…</p>
-  } @else if (sensorEntries().length) {
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Sensor</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (entry of sensorEntries(); track entry[0]) {
-            <tr>
-              <td>{{ entry[0] }}</td>
-              <td>{{ entry[1] }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  } @else {
-    <p>Sin lecturas recientes.</p>
-  }
+  </div>
 </section>

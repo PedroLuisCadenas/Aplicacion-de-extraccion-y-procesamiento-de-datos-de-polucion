@@ -2,14 +2,14 @@
   <h2>Lecturas por sensor</h2>
 
   <div class="controls">
-    <select [(ngModel)] = "selectedElementId">
+    <select [ngModel]="selectedElementId()" (ngModelChange)="selectedElementId.set($event)">
       <option value="">Selecciona un sensor</option>
       @for (element of deviceElements(); track element.id){
         <option [value]="element.id">{{ element.name }}</option>
       }
     </select>
 
-    <input type="number" [(ngModel)] = "hours" placeholder="Horas">
+    <input type="number" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
     <button (click)="loadReadings()">Obtener lecturas</button>
   </div>
 

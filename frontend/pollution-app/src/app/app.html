@@ -1,14 +1,20 @@
-<header class="app-header">
-  <h1>TFG — Polución Ambiental</h1>
-</header>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>TFG</h1>
+      <p>Polución Ambiental</p>
+    </div>
 
-<main>
-  <nav class="app-nav">
-    <ul>
-      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
-      <li><a routerLink="/sensors-readings" routerLinkActive="active">Lecturas de Sensores</a></li>
-      <li><a routerLink="/charts" routerLinkActive="active">Gráficas</a></li>
-    </ul>
-  </nav>
-  <router-outlet />
-</main>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
+        <li><a routerLink="/sensors-readings" routerLinkActive="active">Lecturas de Sensores</a></li>
+        <li><a routerLink="/charts" routerLinkActive="active">Comparador de Sensores</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="app-content">
+    <router-outlet />
+  </main>
+</div>
