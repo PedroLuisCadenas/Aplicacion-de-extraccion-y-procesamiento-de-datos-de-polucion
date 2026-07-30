@@ -1,51 +1,53 @@
 <section class="charts">
   <h2>Comparador de Sensores</h2>
 
-  @if (selectedSensorChips().length) {
-    <div class="chip-row">
-      <span class="chip-row-label">Sensores seleccionados ({{ selectedSensorChips().length }})</span>
-      @for (element of selectedSensorChips(); track element.id) {
-        <span class="chip">
-          {{ element.name }}
-          <button type="button" (click)="toggleSensor(element.id)">×</button>
-        </span>
+  <div class="control-bar">
+    @if (selectedSensorChips().length) {
+      <div class="chip-row">
+        <span class="chip-row-label">Sensores seleccionados ({{ selectedSensorChips().length }})</span>
+        @for (element of selectedSensorChips(); track element.id) {
+          <span class="chip">
+            {{ element.name }}
+            <button type="button" (click)="toggleSensor(element.id)">×</button>
+          </span>
+        }
+        <button type="button" class="clear-link" (click)="clearSelection()">Limpiar todo</button>
+      </div>
+    }
+
+    <div class="sensor-picker">
+      <button type="button" class="btn btn-outline" (click)="openPicker()">Seleccionar sensores</button>
+
+      <div class="range-mode">
+        <label>
+          <input type="radio" name="rangeMode" value="hours"
+              [ngModel]="mode()" (ngModelChange)="onModeChange($event)">
+          <span>Últimas N horas</span>
+        </label>
+        <label>
+          <input type="radio" name="rangeMode" value="range"
+              [ngModel]="mode()" (ngModelChange)="onModeChange($event)">
+          <span>Rango de fechas</span>
+        </label>
+      </div>
+
+      @if (mode() === 'hours') {
+        <input type="number" class="hours-input" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
       }
-      <button type="button" class="clear-link" (click)="clearSelection()">Limpiar todo</button>
+
+      @if (mode() === 'range') {
+        <label class="field">
+          <span>Desde</span>
+          <input type="datetime-local" [ngModel]="rangeStart()" (ngModelChange)="rangeStart.set($event)">
+        </label>
+        <label class="field">
+          <span>Hasta (opcional)</span>
+          <input type="datetime-local" [ngModel]="rangeEnd()" (ngModelChange)="rangeEnd.set($event)">
+        </label>
+      }
+
+      <button type="button" class="btn btn-primary" (click)="generateChart()">Generar gráfica</button>
     </div>
-  }
-
-  <div class="sensor-picker">
-    <button type="button" (click)="openPicker()">Seleccionar sensores</button>
-
-    <div class="range-mode">
-      <label>
-        <input type="radio" name="rangeMode" value="hours"
-            [ngModel]="mode()" (ngModelChange)="mode.set($event)">
-        Últimas N horas
-      </label>
-      <label>
-        <input type="radio" name="rangeMode" value="range"
-            [ngModel]="mode()" (ngModelChange)="mode.set($event)">
-        Rango de fechas
-      </label>
-    </div>
-
-    @if (mode() === 'hours') {
-      <input type="number" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
-    }
-
-    @if (mode() === 'range') {
-      <label>
-        Desde
-        <input type="datetime-local" [ngModel]="rangeStart()" (ngModelChange)="rangeStart.set($event)">
-      </label>
-      <label>
-        Hasta (opcional)
-        <input type="datetime-local" [ngModel]="rangeEnd()" (ngModelChange)="rangeEnd.set($event)">
-      </label>
-    }
-
-    <button (click)="generateChart()">Generar gráfica</button>
   </div>
 
   @if (error()) {
@@ -63,6 +65,41 @@
         [options]="lineChartOptions"
         type="line">
       </canvas>
+    </div>
+  }
+
+  @if (historyRows().length > 0) {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            @for (element of selectedSensorChips(); track element.id) {
+              <th>{{ element.name }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of paginatedHistoryRows(); track row.time) {
+            <tr>
+              <td>{{ row.time | date: 'short' }}</td>
+              @for (element of selectedSensorChips(); track element.id) {
+                <td>{{ row[element.id] }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="pagination">
+        <div class="pagination-nav">
+          <button type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1">Anterior</button>
+          <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+          <button type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()">Siguiente</button>
+        </div>
+        <span class="pagination-summary">
+          Mostrando {{ pageRangeStart() }} a {{ pageRangeEnd() }} de {{ historyRows().length }} registros
+        </span>
+      </div>
     </div>
   }
 

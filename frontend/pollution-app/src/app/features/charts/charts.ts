@@ -1,9 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { Api, DeviceElement, ReadingsHistoryParams } from '../../core/api';
+import { Api, DeviceElement, ReadingsHistoryParams, ReadingsHistoryPoint } from '../../core/api';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
+import { DatePipe } from '@angular/common';
 
 type RangeMode = 'hours' | 'range';
 
@@ -19,9 +20,14 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function toDatetimeLocalInput(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 @Component({
   selector: 'app-charts',
-  imports: [FormsModule, BaseChartDirective],
+  imports: [FormsModule, BaseChartDirective, DatePipe],
   templateUrl: './charts.html',
   styleUrl: './charts.css',
 })
@@ -43,6 +49,9 @@ export class Charts implements OnInit {
   protected readonly isPickerOpen = signal(false);
   protected readonly pickerSearch = signal('');
   protected readonly draftSelectedIds = signal<Set<string>>(new Set());
+  protected readonly historyRows = signal<ReadingsHistoryPoint[]>([]);
+  protected readonly currentPage = signal(1);
+  private readonly PAGE_SIZE = 5;
 
   protected readonly lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
@@ -70,6 +79,26 @@ export class Charts implements OnInit {
   protected readonly filteredElements = computed(() => {
     const search = this.pickerSearch().toLowerCase();
     return this.deviceElements().filter((element) => element.name.toLowerCase().includes(search));
+  });
+
+  protected readonly paginatedHistoryRows = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.PAGE_SIZE;
+    return this.historyRows().slice(startIndex, startIndex + this.PAGE_SIZE);
+  });
+
+  protected readonly totalPages = computed(() => {
+    return Math.ceil(this.historyRows().length / this.PAGE_SIZE);
+  });
+
+  protected readonly pageRangeStart = computed(() => {
+    if (this.historyRows().length === 0) {
+      return 0;
+    }
+    return (this.currentPage() - 1) * this.PAGE_SIZE + 1;
+  });
+
+  protected readonly pageRangeEnd = computed(() => {
+    return Math.min(this.currentPage() * this.PAGE_SIZE, this.historyRows().length);
   });
 
   toggleSensor(id: string): void {
@@ -110,6 +139,19 @@ export class Charts implements OnInit {
     this.draftSelectedIds.set(draftSelectedIds);
   }
 
+  onModeChange(newMode: RangeMode): void {
+    this.mode.set(newMode);
+    this.lineChartData.set({ datasets: [] });
+    this.intervalStats.set([]);
+    this.historyRows.set([]);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
   generateChart(): void {
     if (this.selectedIds().size === 0) {
       this.error.set('Selecciona al menos un sensor antes de generar el gráfico.');
@@ -124,9 +166,12 @@ export class Charts implements OnInit {
         this.error.set('Indica al menos la fecha/hora de inicio del rango.');
         return;
       }
+      if (!this.rangeEnd()) {
+        this.rangeEnd.set(toDatetimeLocalInput(new Date()));
+      }
       params = {
         start: new Date(this.rangeStart()).toISOString(),
-        ...(this.rangeEnd() ? { end: new Date(this.rangeEnd()).toISOString() } : {}),
+        end: new Date(this.rangeEnd()).toISOString(),
       };
     }
 
@@ -171,6 +216,8 @@ export class Charts implements OnInit {
 
         this.lineChartData.set({ datasets });
         this.intervalStats.set(stats);
+        this.historyRows.set(rows);
+        this.currentPage.set(1);
         this.loading.set(false);
       },
       error: () => {
