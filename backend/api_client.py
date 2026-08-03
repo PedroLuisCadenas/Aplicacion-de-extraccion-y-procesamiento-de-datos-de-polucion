@@ -72,9 +72,9 @@ class KunakClient:
     def get_device_info(self, device_id):
         return self._get(f"devices/{device_id}/info")
 
-    def get_elements(self, device_id):
-        """Lista los elementos (sensores) de un dispositivo."""
-        return self._get(f"devices/{device_id}/elements")
+    def get_elements_details(self, device_id):
+        """Lista los elementos (sensores) de un dispositivo, con su unidad de medida."""
+        return self._get(f"devices/{device_id}/elementsDetails")
 
     def get_element_reads(self, device_id, element_id, ts, number=1000):
         """Lecturas de un elemento posteriores a `ts` (ms desde epoch)."""
@@ -88,7 +88,10 @@ class KunakClient:
 
 
 def _normalize_elements(raw):
-    """Normaliza la respuesta de /elements a una lista de dicts {id, name}."""
+    """Normaliza la respuesta de /elementsDetails a una lista de dicts {id, name, unit}.
+
+    La API no da un nombre legible aparte de `tag`, así que `name` es igual a `id`.
+    """
     if isinstance(raw, dict):
         raw = raw.get("elements", raw.get("data", raw.get("items", [])))
 
@@ -102,9 +105,10 @@ def _normalize_elements(raw):
             if not element_id:
                 continue
             name = e.get("name") or e.get("sensor") or e.get("description") or element_id
-            elements.append({"id": element_id, "name": name})
+            unit = e.get("unit") or ""
+            elements.append({"id": element_id, "name": name, "unit": unit})
         elif isinstance(e, str):
-            elements.append({"id": e, "name": e})
+            elements.append({"id": e, "name": e, "unit": ""})
 
     return elements
 
@@ -169,7 +173,7 @@ def list_device_elements(device_id=None):
     """Lista los sensores (elementos) disponibles de un dispositivo Kunak."""
     client = KunakClient()
     device_id = device_id or KUNAK_DEVICE_ID
-    raw = client.get_elements(device_id)
+    raw = client.get_elements_details(device_id)
     return _normalize_elements(raw)
 
 
