@@ -183,7 +183,7 @@ export class Charts implements OnInit {
         const datasets = this.deviceElements()
           .filter((element) => this.selectedIds().has(element.id))
           .map((element) => ({
-            label: element.name,
+            label: element.unit ? `${element.name} (${element.unit})` : element.name,
             data: rows
               .filter((row) => row[element.id] != null)
               .map((row) => ({
@@ -206,7 +206,7 @@ export class Charts implements OnInit {
             const sum = values.reduce((total, value) => total + value, 0);
             return {
               id: element.id,
-              label: element.name,
+              label: element.unit ? `${element.name} (${element.unit})` : element.name,
               avg: round2(sum / values.length),
               min: round2(Math.min(...values)),
               max: round2(Math.max(...values)),

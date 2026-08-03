@@ -75,7 +75,7 @@
           <tr>
             <th>Fecha</th>
             @for (element of selectedSensorChips(); track element.id) {
-              <th>{{ element.name }}</th>
+              <th>{{ element.unit ? element.name + ' (' + element.unit + ')' : element.name }}</th>
             }
           </tr>
         </thead>

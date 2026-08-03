@@ -23,6 +23,7 @@ export interface ReadingsHistoryPoint {
 export interface DeviceElement {
   id: string;
   name: string;
+  unit: string;
 }
 
 export interface ElementRead {
