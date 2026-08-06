@@ -56,6 +56,39 @@
   background: #142c24;
 }
 
+.range-mode {
+  display: inline-flex;
+  background: #eef2f0;
+  border-radius: 999px;
+  padding: 0.2rem;
+}
+
+.range-mode label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4a5b54;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.range-mode input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.range-mode label:has(input:checked) {
+  background: #1b3a2f;
+  color: #fff;
+}
+
 .error {
   color: #b00020;
   font-weight: 500;

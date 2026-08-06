@@ -1,7 +1,15 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Api, DeviceElement, ElementRead } from '../../core/api';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+
+const HOUR_PRESETS: { value: number; label: string }[] = [
+  { value: 6, label: '6 h' },
+  { value: 12, label: '12 h' },
+  { value: 24, label: '24 h' },
+  { value: 48, label: '48 h' },
+  { value: 168, label: '7 días' },
+];
 
 @Component({
   selector: 'app-sensors-readings',
@@ -15,9 +23,22 @@ export class SensorsReadings implements OnInit {
   protected readonly deviceElements = signal<DeviceElement[]>([]);
   protected readonly selectedElementId = signal<string | ''>('');
   protected readonly hours = signal<number>(24);
+  protected readonly selectedHourPresets = signal<number | 'custom'>(24);
+  protected readonly hourPresets = HOUR_PRESETS;
   protected readonly readings = signal<ElementRead[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+
+ protected readonly selectedElement = computed(
+  () => this.deviceElements().find((element) => element.id === this.selectedElementId()) ?? null,
+);
+
+  selectHoursPreset(preset: number | 'custom'): void {
+    this.selectedHourPresets.set(preset);
+    if (preset !== 'custom') {
+      this.hours.set(preset);
+    }
+  }
 
   loadReadings(): void {
     const elementId = this.selectedElementId();
@@ -48,6 +69,5 @@ export class SensorsReadings implements OnInit {
       error: () => this.error.set('No se han podido cargar los sensores del dispositivo.'),
     });
   }
-    
   
 }

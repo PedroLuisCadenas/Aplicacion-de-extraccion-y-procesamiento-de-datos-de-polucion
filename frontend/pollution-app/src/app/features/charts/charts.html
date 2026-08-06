@@ -47,6 +47,9 @@
       }
 
       <button type="button" class="btn btn-primary" (click)="generateChart()">Generar gráfica</button>
+      @if (historyRows().length > 0) {
+        <button type="button" class="btn btn-outline" (click)="downloadCSV()">Exportar CSV</button>
+      }
     </div>
   </div>
 

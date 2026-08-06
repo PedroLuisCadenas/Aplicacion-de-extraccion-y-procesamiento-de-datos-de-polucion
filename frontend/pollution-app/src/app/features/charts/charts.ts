@@ -113,6 +113,9 @@ export class Charts implements OnInit {
 
   clearSelection(): void {
     this.selectedIds.set(new Set());
+    this.lineChartData.set({ datasets: [] });
+    this.intervalStats.set([]);
+    this.historyRows.set([]);
   }
 
   openPicker(): void {
@@ -150,6 +153,27 @@ export class Charts implements OnInit {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+  }
+
+  downloadCSV(): void {
+    const sensorLabels = this.selectedSensorChips().map((element) =>
+      element.unit ? `${element.name} (${element.unit})` : element.name,
+    );
+    const header = ['Fecha', ...sensorLabels];
+    const dataRows = this.historyRows().map((row) => {
+      const values = this.selectedSensorChips().map((element) => row[element.id] ?? '');
+      return [row.time, ...values];
+    });
+    const allRows = [header, ...dataRows];
+    const csvContent = allRows.map((row) => row.join(',')).join('\n');
+    const csvWithBom = '\uFEFF' + csvContent; // Add BOM for Excel compatibility
+    const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' }); 
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comparador-sensores-${new Date().toISOString().slice(0, 19)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   generateChart(): void {

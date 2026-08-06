@@ -9,7 +9,25 @@
       }
     </select>
 
-    <input type="number" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+    <div class="range-mode">
+      @for (preset of hourPresets; track preset.value) {
+        <label>
+          <input type="radio" name="hoursPreset" [value]="preset.value"
+              [ngModel]="selectedHourPresets()" (ngModelChange)="selectHoursPreset($event)">
+          <span>{{ preset.label }}</span>
+        </label>
+      }
+      <label>
+        <input type="radio" name="hoursPreset" value="custom"
+            [ngModel]="selectedHourPresets()" (ngModelChange)="selectHoursPreset($event)">
+        <span>Personalizado</span>
+      </label>
+    </div>
+
+    @if (selectedHourPresets() === 'custom') {
+      <input type="number" class="hours-input" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+    }
+
     <button (click)="loadReadings()">Obtener lecturas</button>
   </div>
 
@@ -27,7 +45,7 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Valor</th>
+            <th>{{ selectedElement() && selectedElement()!.unit ? 'Valor (' + selectedElement()!.unit + ')' : 'Valor' }}</th>
           </tr>
         </thead>
         <tbody>
