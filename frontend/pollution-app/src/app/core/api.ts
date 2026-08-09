@@ -54,9 +54,13 @@ export class Api {
     return this.http.get<LatestReadings>(`${this.baseUrl}/device/readings/latest`);
   }
 
-  getReadingsHistory(params: ReadingsHistoryParams): Observable<ReadingsHistoryPoint[]> {
+  getReadingsHistory(params: ReadingsHistoryParams, elementId?: string): Observable<ReadingsHistoryPoint[]> {
+    const httpParams: Record<string, string | number> = { ...params };
+    if (elementId) {
+      httpParams['element_id'] = elementId;
+    }
     return this.http.get<ReadingsHistoryPoint[]>(`${this.baseUrl}/device/readings`, {
-      params: params as Record<string, string | number>,
+      params: httpParams,
     });
   }
 

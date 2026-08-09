@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { Api, DeviceElement, ElementRead } from '../../core/api';
+import { Api, DeviceElement, ReadingsHistoryPoint } from '../../core/api';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 
@@ -25,7 +25,7 @@ export class SensorsReadings implements OnInit {
   protected readonly hours = signal<number>(24);
   protected readonly selectedHourPresets = signal<number | 'custom'>(24);
   protected readonly hourPresets = HOUR_PRESETS;
-  protected readonly readings = signal<ElementRead[]>([]);
+  protected readonly readings = signal<ReadingsHistoryPoint[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -51,7 +51,7 @@ export class SensorsReadings implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.getElementReadings(elementId, this.hours()).subscribe({
+    this.api.getReadingsHistory({ hours: this.hours() }, elementId).subscribe({
       next: (readings) => {
         this.readings.set(readings);
         this.loading.set(false);

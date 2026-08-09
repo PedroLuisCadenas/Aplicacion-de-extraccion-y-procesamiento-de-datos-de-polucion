@@ -49,10 +49,10 @@
           </tr>
         </thead>
         <tbody>
-          @for (r of readings(); track r.ts) {
+          @for (r of readings(); track r.time) {
             <tr>
-              <td>{{ r.ts | date: 'short' }}</td>
-              <td>{{ r.value }}</td>
+              <td>{{ r.time | date: 'short' }}</td>
+              <td>{{ r[selectedElementId()] }}</td>
             </tr>
           }
         </tbody>
