@@ -40,9 +40,9 @@ def get_latest_readings():
 
 
 @app.get("/api/device/readings")
-def get_readings_history(hours: int = 24, start: str | None = None, end: str | None = None):
+def get_readings_history(hours: int = 24, start: str | None = None, end: str | None = None, element_id: str | None = None):
     try:
-        return query_readings_history(hours=hours, start=start, end=end)
+        return query_readings_history(hours=hours, start=start, end=end, field=element_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido (se espera ISO 8601)")
 

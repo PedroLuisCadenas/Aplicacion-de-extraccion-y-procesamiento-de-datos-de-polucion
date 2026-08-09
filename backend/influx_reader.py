@@ -80,7 +80,7 @@ def query_latest_user_info():
     return data
 
 
-def query_readings_history(hours: int = 24, start: str | None = None, end: str | None = None):
+def query_readings_history(hours: int = 24, start: str | None = None, end: str | None = None, field: str | None = None):
     """Si se pasa `start`, se usa un rango absoluto [start, end] (end por defecto = ahora),
     ignorando `hours`. Si no, se mantiene el comportamiento anterior (últimas `hours` horas)."""
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
@@ -93,10 +93,12 @@ def query_readings_history(hours: int = 24, start: str | None = None, end: str |
     else:
         range_clause = f"range(start: -{hours}h)"
 
+    field_filter = f'|> filter(fn: (r) => r._field == "{field}")' if field else ""
     query = f'''
         from(bucket: "{INFLUX_BUCKET}")
           |> {range_clause}
           |> filter(fn: (r) => r._measurement == "pollution")
+          {field_filter}
           |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
           |> sort(columns: ["_time"])
     '''
