@@ -42,10 +42,6 @@ export class Charts implements OnInit {
   protected readonly rangeEnd = signal<string>('');
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly lineChartData = signal<ChartData<'line', { x: number; y: number }[]>>({
-    datasets: [],
-  });
-  protected readonly intervalStats = signal<SensorStat[]>([]);
   protected readonly isPickerOpen = signal(false);
   protected readonly pickerSearch = signal('');
   protected readonly draftSelectedIds = signal<Set<string>>(new Set());
@@ -71,6 +67,44 @@ export class Charts implements OnInit {
       error: () => this.error.set('No se han podido cargar los sensores del dispositivo.'),
     });
   }
+
+  protected readonly intervalStats = computed(() => {
+  return this.selectedSensorChips()
+    .map((element): SensorStat | null => {
+      const values = this.historyRows()
+        .filter((row) => row[element.id] != null)
+        .map((row) => row[element.id] as number);
+
+      if (values.length === 0) {
+        return null;
+      }
+
+      const sum = values.reduce((total, value) => total + value, 0);
+      return {
+        id: element.id,
+        label: element.unit ? `${element.name} (${element.unit})` : element.name,
+        avg: round2(sum / values.length),
+        min: round2(Math.min(...values)),
+        max: round2(Math.max(...values)),
+      };
+    })
+    .filter((stat): stat is SensorStat => stat !== null);
+  });
+
+  protected readonly lineChartData = computed(() => {
+    const datasets = this.deviceElements()
+          .filter((element) => this.selectedIds().has(element.id))
+          .map((element) => ({
+            label: element.unit ? `${element.name} (${element.unit})` : element.name,
+            data: this.historyRows()
+              .filter((row) => row[element.id] != null)
+              .map((row) => ({
+                x: new Date(row.time).getTime(),
+                y: row[element.id] as number,
+              })),
+          }));
+    return { datasets };      
+  });        
 
   protected readonly selectedSensorChips = computed(() =>
     this.deviceElements().filter((element) => this.selectedIds().has(element.id)),
@@ -113,8 +147,6 @@ export class Charts implements OnInit {
 
   clearSelection(): void {
     this.selectedIds.set(new Set());
-    this.lineChartData.set({ datasets: [] });
-    this.intervalStats.set([]);
     this.historyRows.set([]);
   }
 
@@ -144,8 +176,6 @@ export class Charts implements OnInit {
 
   onModeChange(newMode: RangeMode): void {
     this.mode.set(newMode);
-    this.lineChartData.set({ datasets: [] });
-    this.intervalStats.set([]);
     this.historyRows.set([]);
   }
 
@@ -204,49 +234,12 @@ export class Charts implements OnInit {
 
     this.api.getReadingsHistory(params).subscribe({
       next: (rows) => {
-        const datasets = this.deviceElements()
-          .filter((element) => this.selectedIds().has(element.id))
-          .map((element) => ({
-            label: element.unit ? `${element.name} (${element.unit})` : element.name,
-            data: rows
-              .filter((row) => row[element.id] != null)
-              .map((row) => ({
-                x: new Date(row.time).getTime(),
-                y: row[element.id] as number,
-              })),
-          }));
-
-        const stats = this.deviceElements()
-          .filter((element) => this.selectedIds().has(element.id))
-          .map((element): SensorStat | null => {
-            const values = rows
-              .filter((row) => row[element.id] != null)
-              .map((row) => row[element.id] as number);
-
-            if (values.length === 0) {
-              return null;
-            }
-
-            const sum = values.reduce((total, value) => total + value, 0);
-            return {
-              id: element.id,
-              label: element.unit ? `${element.name} (${element.unit})` : element.name,
-              avg: round2(sum / values.length),
-              min: round2(Math.min(...values)),
-              max: round2(Math.max(...values)),
-            };
-          })
-          .filter((stat): stat is SensorStat => stat !== null);
-
-        this.lineChartData.set({ datasets });
-        this.intervalStats.set(stats);
         this.historyRows.set(rows);
         this.currentPage.set(1);
         this.loading.set(false);
       },
       error: () => {
         this.error.set('No se han podido cargar los datos del histórico.');
-        this.intervalStats.set([]);
         this.loading.set(false);
       },
     });
