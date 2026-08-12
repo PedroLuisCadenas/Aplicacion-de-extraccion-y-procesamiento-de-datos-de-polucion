@@ -1,67 +1,103 @@
 .dashboard {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .error {
   color: #b00020;
   font-weight: 500;
-  margin-bottom: 1rem;
 }
 
-.info-grid {
+.kpi-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.25rem;
 }
 
-@media (max-width: 720px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.info-card {
+.card {
   background: #fff;
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-.info-card h2 {
+.card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #6b7a74;
+  font-weight: 500;
+}
+
+.card .value {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1b3a2f;
+}
+
+.card .loading {
+  margin: 0;
+  color: #6b7a74;
+  font-style: italic;
+}
+
+.device-summary-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  max-width: 320px;
+}
+
+.device-summary-card h2 {
   margin: 0 0 1rem;
   font-size: 1.1rem;
   color: #1b3a2f;
 }
 
-.info-card table {
-  width: 100%;
-  border-collapse: collapse;
+.device-summary-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
 }
 
-.info-card tbody td {
-  padding: 0.6rem 0;
+.device-summary-fields .field {
+  display: flex;
+  justify-content: space-between;
   border-bottom: 1px solid #eef1f0;
+  padding-bottom: 0.6rem;
 }
 
-.info-card tbody tr:last-child td {
+.device-summary-fields .field:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
-.info-card td:first-child {
-  width: 45%;
+.device-summary-fields .label {
   color: #6b7a74;
   font-weight: 500;
 }
 
-.info-card td:last-child {
-  text-align: right;
+.device-summary-fields .field-value {
   color: #1b3a2f;
   font-weight: 600;
 }
 
-.info-card p {
+.device-summary-card .loading {
   color: #6b7a74;
   font-style: italic;
-  margin: 0;
+  margin: 0 0 1rem;
+}
+
+.device-summary-link {
+  color: #1b3a2f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.device-summary-link:hover {
+  text-decoration: underline;
 }

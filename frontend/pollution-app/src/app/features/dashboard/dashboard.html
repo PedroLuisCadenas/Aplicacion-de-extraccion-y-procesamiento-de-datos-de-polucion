@@ -3,45 +3,41 @@
     <p class="error">{{ error() }}</p>
   }
 
-  <div class="info-grid">
-    <div class="info-card">
-      <h2>Usuario</h2>
-      @if (userInfoEntries().length) {
-        <div class="table-wrapper">
-          <table>
-            <tbody>
-              @for (entry of userInfoEntries(); track entry[0]) {
-                <tr>
-                  <td>{{ entry[0] }}</td>
-                  <td>{{ entry[1] }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <p>Cargando información del usuario…</p>
-      }
-    </div>
+  <h2>Últimas Lecturas</h2>
 
-    <div class="info-card">
-      <h2>Dispositivo</h2>
-      @if (deviceInfoEntries().length) {
-        <div class="table-wrapper">
-          <table>
-            <tbody>
-              @for (entry of deviceInfoEntries(); track entry[0]) {
-                <tr>
-                  <td>{{ entry[0] }}</td>
-                  <td>{{ entry[1] }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+  <div class="kpi-row">
+    @for (card of cardKPI(); track card.id) {
+      <div class="card">
+        <h2>{{ card.name }}</h2>
+        @if (card.value !== null) {
+          <p class="value">{{ card.value }} {{ card.unit }}</p>
+        } @else {
+          <p class="loading">Cargando…</p>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="device-summary-card">
+    <h2>Dispositivo</h2>
+    @if (deviceInfo(); as info) {
+      <div class="device-summary-fields">
+        <div class="field">
+          <span class="label">Batería</span>
+          <span class="field-value">{{ info['battery_level'] }} %</span>
         </div>
-      } @else {
-        <p>Cargando información del dispositivo…</p>
-      }
-    </div>
+        <div class="field">
+          <span class="label">Señal</span>
+          <span class="field-value">{{ info['rx_signal_level'] }} dBm</span>
+        </div>
+        <div class="field">
+          <span class="label">Tag</span>
+          <span class="field-value">{{ info['tag'] }}</span>
+        </div>
+      </div>
+    } @else {
+      <p class="loading">Cargando información del dispositivo…</p>
+    }
+    <a routerLink="/informacion" class="device-summary-link">Ver más detalles →</a>
   </div>
 </section>
