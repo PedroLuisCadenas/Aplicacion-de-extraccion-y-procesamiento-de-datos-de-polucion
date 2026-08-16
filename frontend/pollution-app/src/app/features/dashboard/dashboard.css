@@ -12,7 +12,7 @@
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.25rem;
 }
 
@@ -41,6 +41,11 @@
   margin: 0;
   color: #6b7a74;
   font-style: italic;
+}
+
+.mini-chart {
+  height: 140px;
+  margin-top: 0.75rem;
 }
 
 .device-summary-card {

@@ -1,12 +1,15 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChartConfiguration, ChartData } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 import { RouterLink } from '@angular/router';
-import { Api, DeviceElement, DeviceInfo, LatestReadings } from '../../core/api';
+import { BaseChartDirective } from 'ng2-charts';
+import { Api, DeviceElement, DeviceInfo, LatestReadings, ReadingsHistoryPoint } from '../../core/api';
 
-const KEY_SENSOR_NAMES = ['Heat Index', 'Humidity Index', 'NO2 GCC', 'Pressure', 'Temp', 'Temp ext'];
+const KEY_SENSOR_NAMES = ['Heat Index', 'Humidity ext', 'NO2 GCc', 'Temp', 'Temp ext'];
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -17,6 +20,28 @@ export class Dashboard implements OnInit {
   protected readonly deviceElements = signal<DeviceElement[]>([]);
   protected readonly latestReadings = signal<LatestReadings>({});
   protected readonly deviceInfo = signal<DeviceInfo | null>(null);
+  protected readonly historyRows = signal<ReadingsHistoryPoint[]>([]);
+  protected readonly miniChartsOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        type: 'time',
+        time: { unit: 'day', displayFormats: { day: 'd MMM' }, tooltipFormat: 'dd/MM/yyyy HH:mm' },
+        ticks: { autoSkip: true, maxRotation: 0, font: { size: 10 } },
+        grid: { display: false },
+      },
+      y: {
+        ticks: { font: { size: 10 } },
+        grid: { color: '#eef1f0' },
+      },
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+  };
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -33,6 +58,10 @@ export class Dashboard implements OnInit {
       next: (info) => this.deviceInfo.set(info),
       error: () => this.error.set('No se ha podido cargar la información del dispositivo.'),
     });
+    this.api.getReadingsHistory({ hours: 24 * 7 }).subscribe({
+      next: (history) => this.historyRows.set(history),
+      error: () => this.error.set('No se han podido cargar los datos históricos del dispositivo.'),
+    });
 
   }
 
@@ -40,14 +69,28 @@ export class Dashboard implements OnInit {
     const readings = this.latestReadings();
     const elements = this.deviceElements();
     const kpiElements = elements.filter((element) => KEY_SENSOR_NAMES.includes(element.name));
-    return kpiElements.map((element) => ({
-      id: element.id,
-      name: element.name,
-      unit: element.unit,
-      value: readings[element.id] ?? null,
-    }));
+    return kpiElements.map((element) => {
+      const points = this.historyRows()
+        .filter((row) => row[element.id] != null)
+        .map((row) => ({ x: new Date(row.time).getTime(), y: row[element.id] as number }));
+      return {
+        id: element.id,
+        name: element.name,
+        unit: element.unit,
+        value: readings[element.id] ?? null,
+        chartData: {
+          datasets: [
+            {
+              data: points,
+              borderColor: '#1b3a2f',
+              backgroundColor: 'rgba(27, 58, 47, 0.12)',
+              pointRadius: 0,
+              tension: 0.3,
+              fill: true,
+            },
+          ],
+        } as ChartData<'line'>,
+      };
+    });
   });
-
-
-
 }

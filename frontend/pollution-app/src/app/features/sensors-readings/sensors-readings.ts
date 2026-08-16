@@ -11,6 +11,10 @@ const HOUR_PRESETS: { value: number; label: string }[] = [
   { value: 168, label: '7 días' },
 ];
 
+function toCsvValue(value: string | number): string {
+  return typeof value === 'number' ? value.toString().replace('.', ',') : value;
+}
+
 @Component({
   selector: 'app-sensors-readings',
   imports: [FormsModule, DatePipe],
@@ -69,5 +73,25 @@ export class SensorsReadings implements OnInit {
       error: () => this.error.set('No se han podido cargar los sensores del dispositivo.'),
     });
   }
-  
+
+  downloadCSV(): void {
+    const element = this.selectedElement();
+    if (!element) {
+      return;
+    }
+
+    const sensorLabel = element.unit ? `${element.name} (${element.unit})` : element.name;
+    const header = ['Fecha', sensorLabel];
+    const dataRows = this.readings().map((row) => [row.time, toCsvValue(row[element.id] ?? '')]);
+    const allRows = [header, ...dataRows];
+    const csvContent = allRows.map((row) => row.join(';')).join('\n');
+    const csvWithBom = '\uFEFF' + csvContent;
+    const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `lecturas-${element.id}-${new Date().toISOString().slice(0, 19)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 }

@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Api, DeviceInfo } from '../../core/api';
 
 const DEVICE_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
@@ -33,7 +34,7 @@ function formatEntries(
 
 @Component({
   selector: 'app-informacion',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './informacion.html',
   styleUrl: './informacion.css',
 })

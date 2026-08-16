@@ -25,6 +25,10 @@ function toDatetimeLocalInput(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function toCsvValue(value: string | number): string {
+  return typeof value === 'number' ? value.toString().replace('.', ',') : value;
+}
+
 @Component({
   selector: 'app-charts',
   imports: [FormsModule, BaseChartDirective, DatePipe],
@@ -191,11 +195,11 @@ export class Charts implements OnInit {
     );
     const header = ['Fecha', ...sensorLabels];
     const dataRows = this.historyRows().map((row) => {
-      const values = this.selectedSensorChips().map((element) => row[element.id] ?? '');
+      const values = this.selectedSensorChips().map((element) => toCsvValue(row[element.id] ?? ''));
       return [row.time, ...values];
     });
     const allRows = [header, ...dataRows];
-    const csvContent = allRows.map((row) => row.join(',')).join('\n');
+    const csvContent = allRows.map((row) => row.join(';')).join('\n');
     const csvWithBom = '\uFEFF' + csvContent; // Add BOM for Excel compatibility
     const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' }); 
     const url = URL.createObjectURL(blob);

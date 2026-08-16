@@ -40,6 +40,8 @@
   }
 
   @if (readings().length > 0) {
+    <button type="button" class="export-btn" (click)="downloadCSV()">Exportar CSV</button>
+
     <div class="table-wrapper">
       <table>
         <thead>

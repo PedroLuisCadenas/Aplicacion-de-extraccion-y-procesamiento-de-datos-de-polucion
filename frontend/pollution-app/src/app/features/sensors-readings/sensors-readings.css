@@ -94,6 +94,24 @@
   font-weight: 500;
 }
 
+.export-btn {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #1b3a2f;
+  border-radius: 6px;
+  background: #fff;
+  color: #1b3a2f;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.export-btn:hover {
+  background: #eef2f0;
+}
+
 .table-wrapper {
   overflow-x: auto;
   border-radius: 10px;

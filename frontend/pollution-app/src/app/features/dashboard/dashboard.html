@@ -14,6 +14,9 @@
         } @else {
           <p class="loading">Cargando…</p>
         }
+        <div class="mini-chart">
+          <canvas baseChart type="line" [data]="card.chartData" [options]="miniChartsOptions"></canvas>
+        </div>
       </div>
     }
   </div>
