@@ -7,15 +7,25 @@
 
   <div class="kpi-row">
     @for (card of cardKPI(); track card.id) {
-      <div class="card">
-        <h2>{{ card.name }}</h2>
-        @if (card.value !== null) {
-          <p class="value">{{ card.value }} {{ card.unit }}</p>
-        } @else {
-          <p class="loading">Cargando…</p>
-        }
-        <div class="mini-chart">
-          <canvas baseChart type="line" [data]="card.chartData" [options]="miniChartsOptions"></canvas>
+      <div class="kpi-column">
+        <div class="card value-card">
+          <h2>{{ card.name }}</h2>
+          @if (card.value !== null) {
+            <div class="value-row">
+              <p class="value">{{ card.value }} {{ card.unit }}</p>
+              <div class="minmax">
+                <span>Máx {{ card.max }}</span>
+                <span>Mín {{ card.min }}</span>
+              </div>
+            </div>
+          } @else {
+            <p class="loading">Cargando…</p>
+          }
+        </div>
+        <div class="card chart-card">
+          <div class="mini-chart">
+            <canvas baseChart type="line" [data]="card.chartData" [options]="miniChartsOptions"></canvas>
+          </div>
         </div>
       </div>
     }

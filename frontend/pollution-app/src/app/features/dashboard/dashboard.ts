@@ -7,6 +7,10 @@ import { Api, DeviceElement, DeviceInfo, LatestReadings, ReadingsHistoryPoint } 
 
 const KEY_SENSOR_NAMES = ['Heat Index', 'Humidity ext', 'NO2 GCc', 'Temp', 'Temp ext'];
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [RouterLink, BaseChartDirective],
@@ -27,7 +31,7 @@ export class Dashboard implements OnInit {
     scales: {
       x: {
         type: 'time',
-        time: { unit: 'day', displayFormats: { day: 'd MMM' }, tooltipFormat: 'dd/MM/yyyy HH:mm' },
+        time: { unit: 'day', displayFormats: { day: 'd' }, tooltipFormat: 'dd/MM/yyyy HH:mm' },
         ticks: { autoSkip: true, maxRotation: 0, font: { size: 10 } },
         grid: { display: false },
       },
@@ -73,11 +77,14 @@ export class Dashboard implements OnInit {
       const points = this.historyRows()
         .filter((row) => row[element.id] != null)
         .map((row) => ({ x: new Date(row.time).getTime(), y: row[element.id] as number }));
+      const values = points.map((point) => point.y);
       return {
         id: element.id,
         name: element.name,
         unit: element.unit,
         value: readings[element.id] ?? null,
+        max: values.length ? round2(Math.max(...values)) : null,
+        min: values.length ? round2(Math.min(...values)) : null,
         chartData: {
           datasets: [
             {
