@@ -1,6 +1,6 @@
 import time
-from api_client import KunakClient, get_device_readings
-from influx_client import write_device_info, write_user_info, write_readings
+from api_client import KunakClient, get_device_readings, list_device_elements
+from influx_client import write_device_info, write_user_info, write_readings, write_elements_catalog
 from config import KUNAK_DEVICE_ID, KUNAK_USERNAME
 
 # La API de Kunak tiene un límite de 10.000 peticiones/mes. Con una petición
@@ -25,8 +25,10 @@ def main():
             write_device_info(info, device_id=KUNAK_DEVICE_ID)
             info = client.get_user_info(KUNAK_USERNAME)
             write_user_info(info, user_id=KUNAK_USERNAME)
-            info = get_device_readings()
-            write_readings(info, device_id=KUNAK_DEVICE_ID)            
+            elements = list_device_elements(KUNAK_DEVICE_ID)
+            write_elements_catalog(elements, device_id=KUNAK_DEVICE_ID)
+            info = get_device_readings(device_id=KUNAK_DEVICE_ID, elements=elements)
+            write_readings(info, device_id=KUNAK_DEVICE_ID)
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(POLL_INTERVAL_SECONDS)

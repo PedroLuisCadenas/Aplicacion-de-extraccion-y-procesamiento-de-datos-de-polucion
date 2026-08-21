@@ -56,6 +56,34 @@ def write_device_info(info: dict, device_id: str):
     print("Info del dispositivo escrita en InfluxDB correctamente")
 
 
+def write_elements_catalog(elements: list, device_id: str):
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    def _point(element):
+        point = (
+            Point("device_elements")
+            .tag("device_id", device_id)
+            .tag("element_id", element["id"])
+            .field("name", element.get("name", element["id"]))
+        )
+        # Cadena vacía y NULL son indistinguibles al releer (el cliente de
+        # InfluxDB decodifica "" como None), lo que rompe el pivot() de
+        # query_latest_elements. Se omite el campo para sensores sin unidad
+        # (p.ej. AQI); query_latest_elements ya trata "sin campo" como "".
+        unit = element.get("unit", "")
+        if unit:
+            point = point.field("unit", unit)
+        return point
+
+    points = [_point(element) for element in elements if element.get("id")]
+
+    if points:
+        write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points)
+    client.close()
+    print("Catálogo de sensores escrito en InfluxDB correctamente")
+
+
 def write_user_info(info: dict, user_id: str):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)

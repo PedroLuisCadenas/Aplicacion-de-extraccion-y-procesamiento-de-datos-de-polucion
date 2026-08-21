@@ -186,12 +186,15 @@ def get_element_history(device_id, element_id, hours=DEFAULT_HISTORY_HOURS):
     return _normalize_reads(raw)
 
 
-def get_device_readings(device_id=None):
-    """Última lectura de cada sensor del dispositivo, para el daemon de recolección."""
+def get_device_readings(device_id=None, elements=None):
+    """Última lectura de cada sensor del dispositivo, para el daemon de recolección.
+
+    Acepta `elements` ya obtenidos (p.ej. por el propio daemon, para escribir
+    también el catálogo) y así evita pedirlos dos veces."""
     client = KunakClient()
     device_id = device_id or KUNAK_DEVICE_ID
 
-    elements = list_device_elements(device_id)
+    elements = elements if elements is not None else list_device_elements(device_id)
     if not elements:
         raise RuntimeError(
             f"No se encontraron sensores para el dispositivo {device_id}."

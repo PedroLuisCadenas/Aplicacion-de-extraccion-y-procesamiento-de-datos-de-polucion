@@ -3,13 +3,14 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from api_client import list_device_elements, get_element_history
+from api_client import get_element_history
 from config import KUNAK_DEVICE_ID
 from influx_reader import (
     query_latest_readings,
     query_readings_history,
     query_latest_device_info,
     query_latest_user_info,
+    query_latest_elements,
 )
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
@@ -49,8 +50,8 @@ def get_readings_history(hours: int = 24, start: str | None = None, end: str | N
 
 @app.get("/api/device/elements")
 def get_device_elements():
-    """Lista en vivo los sensores (elementos) del dispositivo, consultando la API de Kunak."""
-    return list_device_elements(KUNAK_DEVICE_ID)
+    """Catálogo de sensores del dispositivo, leído de InfluxDB (lo escribe el daemon)."""
+    return query_latest_elements(KUNAK_DEVICE_ID)
 
 
 @app.get("/api/device/elements/{element_id}/readings")

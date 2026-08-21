@@ -80,6 +80,38 @@ def query_latest_user_info():
     return data
 
 
+def query_latest_elements(device_id: str):
+    """Último catálogo de sensores conocido (id/nombre/unidad), leído de Influx
+    en vez de en vivo de Kunak. -7d de margen por si el daemon lleva un tiempo parado."""
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+    query_api = client.query_api()
+
+    query = f'''
+        from(bucket: "{INFLUX_BUCKET}")
+          |> range(start: -7d)
+          |> filter(fn: (r) => r._measurement == "device_elements")
+          |> filter(fn: (r) => r.device_id == "{device_id}")
+          |> pivot(rowKey: ["_time", "element_id"], columnKey: ["_field"], valueColumn: "_value")
+          |> group(columns: ["element_id"])
+          |> last(column: "_time")
+    '''
+
+    result = query_api.query(query=query, org=INFLUX_ORG)
+    client.close()
+
+    elements = []
+    for table in result:
+        for record in table.records:
+            element_id = record.values.get("element_id")
+            elements.append({
+                "id": element_id,
+                "name": record.values.get("name", element_id),
+                "unit": record.values.get("unit", ""),
+            })
+
+    return elements
+
+
 def query_readings_history(hours: int = 24, start: str | None = None, end: str | None = None, field: str | None = None):
     """Si se pasa `start`, se usa un rango absoluto [start, end] (end por defecto = ahora),
     ignorando `hours`. Si no, se mantiene el comportamiento anterior (últimas `hours` horas)."""
