@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from config import KUNAK_DEVICE_ID
+from public_api import router as public_api_router
 from influx_reader import (
     query_latest_readings,
     query_readings_history,
@@ -18,6 +19,8 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+app.include_router(public_api_router)
 
 
 @app.get("/api/user/info")
