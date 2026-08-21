@@ -26,11 +26,6 @@ export interface DeviceElement {
   unit: string;
 }
 
-export interface ElementRead {
-  ts: number;
-  value: number;
-}
-
 export type ReadingsHistoryParams =
   | { hours: number }
   | { start: string; end?: string };
@@ -43,15 +38,15 @@ export class Api {
   private readonly baseUrl = environment.apiUrl;
 
   getUserInfo(): Observable<UserInfo> {
-    return this.http.get<UserInfo>(`${this.baseUrl}/user/info`);
+    return this.http.get<UserInfo>(`${this.baseUrl}/api/user/info`);
   }
 
   getLatestDeviceInfo(): Observable<DeviceInfo> {
-    return this.http.get<DeviceInfo>(`${this.baseUrl}/device/info/latest`);
+    return this.http.get<DeviceInfo>(`${this.baseUrl}/api/v1/device/info/latest`);
   }
 
   getLatestReadings(): Observable<LatestReadings> {
-    return this.http.get<LatestReadings>(`${this.baseUrl}/device/readings/latest`);
+    return this.http.get<LatestReadings>(`${this.baseUrl}/api/v1/device/readings/latest`);
   }
 
   getReadingsHistory(params: ReadingsHistoryParams, elementId?: string): Observable<ReadingsHistoryPoint[]> {
@@ -59,19 +54,12 @@ export class Api {
     if (elementId) {
       httpParams['element_id'] = elementId;
     }
-    return this.http.get<ReadingsHistoryPoint[]>(`${this.baseUrl}/device/readings`, {
+    return this.http.get<ReadingsHistoryPoint[]>(`${this.baseUrl}/api/v1/device/readings`, {
       params: httpParams,
     });
   }
 
   getDeviceElements(): Observable<DeviceElement[]> {
-    return this.http.get<DeviceElement[]>(`${this.baseUrl}/device/elements`);
-  }
-
-  getElementReadings(elementId: string, hours = 24): Observable<ElementRead[]> {
-    return this.http.get<ElementRead[]>(
-      `${this.baseUrl}/device/elements/${elementId}/readings`,
-      { params: { hours } },
-    );
+    return this.http.get<DeviceElement[]>(`${this.baseUrl}/api/v1/device/elements`);
   }
 }
