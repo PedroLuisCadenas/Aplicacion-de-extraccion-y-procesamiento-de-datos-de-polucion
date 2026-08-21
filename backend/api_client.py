@@ -3,7 +3,6 @@ import time
 import requests
 from config import KUNAK_BASE_URL, KUNAK_USERNAME, KUNAK_PASSWORD, KUNAK_DEVICE_ID
 
-DEFAULT_HISTORY_HOURS = 24
 MAX_READS_PER_REQUEST = 4000
 
 # Ventana de búsqueda para get_device_readings(): debe cubrir el intervalo de
@@ -75,11 +74,6 @@ class KunakClient:
     def get_elements_details(self, device_id):
         """Lista los elementos (sensores) de un dispositivo, con su unidad de medida."""
         return self._get(f"devices/{device_id}/elementsDetails")
-
-    def get_element_reads(self, device_id, element_id, ts, number=1000):
-        """Lecturas de un elemento posteriores a `ts` (ms desde epoch)."""
-        params = {"ts": ts, "number": number}
-        return self._get(f"devices/{device_id}/elements/{element_id}/reads/from", params=params)
 
     def get_elements_reads(self, device_id, sensors, ts, number=1000):
         """Lecturas de varios sensores a la vez, posteriores a `ts` (ms desde epoch)."""
@@ -175,15 +169,6 @@ def list_device_elements(device_id=None):
     device_id = device_id or KUNAK_DEVICE_ID
     raw = client.get_elements_details(device_id)
     return _normalize_elements(raw)
-
-
-def get_element_history(device_id, element_id, hours=DEFAULT_HISTORY_HOURS):
-    """Lecturas de un sensor concreto durante las últimas `hours` horas."""
-    client = KunakClient()
-    now_ms = int(time.time() * 1000)
-    ts = now_ms - int(hours * 60 * 60 * 1000)
-    raw = client.get_element_reads(device_id, element_id, ts=ts, number=MAX_READS_PER_REQUEST)
-    return _normalize_reads(raw)
 
 
 def get_device_readings(device_id=None, elements=None):

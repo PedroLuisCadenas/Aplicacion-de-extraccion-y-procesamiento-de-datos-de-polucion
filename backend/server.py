@@ -1,9 +1,5 @@
-from pathlib import Path
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from api_client import get_element_history
 from config import KUNAK_DEVICE_ID
 from influx_reader import (
     query_latest_readings,
@@ -13,7 +9,6 @@ from influx_reader import (
     query_latest_elements,
 )
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 app = FastAPI(title="TFG Pollution API")
 
@@ -52,15 +47,6 @@ def get_readings_history(hours: int = 24, start: str | None = None, end: str | N
 def get_device_elements():
     """Catálogo de sensores del dispositivo, leído de InfluxDB (lo escribe el daemon)."""
     return query_latest_elements(KUNAK_DEVICE_ID)
-
-
-@app.get("/api/device/elements/{element_id}/readings")
-def get_device_element_readings(element_id: str, hours: int = 24):
-    """Lecturas en vivo de un sensor concreto, consultando la API de Kunak."""
-    return get_element_history(KUNAK_DEVICE_ID, element_id, hours=hours)
-
-
-app.mount("/ui", StaticFiles(directory=FRONTEND_DIR, html=True), name="ui")
 
 
 if __name__ == "__main__":
