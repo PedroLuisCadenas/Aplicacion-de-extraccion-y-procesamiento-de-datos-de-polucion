@@ -1,3 +1,5 @@
+// Componente raíz, solo aporta el layout fijo
+
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 

@@ -1,3 +1,5 @@
+// Servicio único que centraliza todas las llamadas a la API del backend
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -31,24 +33,28 @@ export type ReadingsHistoryParams =
   | { start: string; end?: string };
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root', // Esto asegura que la clase Api esté disponible en toda la app
 })
 export class Api {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiUrl;
+  private readonly baseUrl = environment.apiUrl; // http:localhost:8200 (backend FastAPI)
 
+  // Único endpoint interno, trae información del usuario
   getUserInfo(): Observable<UserInfo> {
     return this.http.get<UserInfo>(`${this.baseUrl}/api/user/info`);
   }
 
+  // Trae la información más reciente del dispositivo
   getLatestDeviceInfo(): Observable<DeviceInfo> {
     return this.http.get<DeviceInfo>(`${this.baseUrl}/api/v1/device/info/latest`);
   }
 
+  // Trae la información más reciente de los sensores
   getLatestReadings(): Observable<LatestReadings> {
     return this.http.get<LatestReadings>(`${this.baseUrl}/api/v1/device/readings/latest`);
   }
 
+  // Trae el historial de lecturas de los sensores
   getReadingsHistory(params: ReadingsHistoryParams, elementId?: string): Observable<ReadingsHistoryPoint[]> {
     const httpParams: Record<string, string | number> = { ...params };
     if (elementId) {
@@ -59,6 +65,7 @@ export class Api {
     });
   }
 
+  // Trae la lista de elementos del dispositivo
   getDeviceElements(): Observable<DeviceElement[]> {
     return this.http.get<DeviceElement[]>(`${this.baseUrl}/api/v1/device/elements`);
   }
