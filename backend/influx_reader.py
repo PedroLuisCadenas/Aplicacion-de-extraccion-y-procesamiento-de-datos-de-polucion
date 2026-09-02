@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
+"""Lectura/consulta de InfluxDB"""
 
+from datetime import datetime, timezone
 from influxdb_client import InfluxDBClient
 from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
 
 
 def _to_flux_timestamp(value: str) -> str:
-    """Valida y normaliza una fecha ISO 8601 (p.ej. de un <input type=datetime-local>)
-    a un timestamp RFC3339 en UTC, apto para interpolar en una consulta Flux.
+    """Valida y normaliza una fecha apta para interpolar en una consulta Flux.
     Lanza ValueError si el formato no es válido."""
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
@@ -14,6 +14,7 @@ def _to_flux_timestamp(value: str) -> str:
     return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+# Última lectura conocida de cada sensor (measurement: pollution).
 def query_latest_readings():
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()
@@ -35,7 +36,7 @@ def query_latest_readings():
 
     return data
 
-
+# Última información conocida del dispositivo (measurement: device_info).    
 def query_latest_device_info():
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()
@@ -58,6 +59,7 @@ def query_latest_device_info():
     return data
 
 
+# Última información conocida del usuario (measurement: user_info).
 def query_latest_user_info():
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()
@@ -80,9 +82,10 @@ def query_latest_user_info():
     return data
 
 
+# Último catálogo de sensores conocido (measurement: device_elements).
 def query_latest_elements(device_id: str):
-    """Último catálogo de sensores conocido (id/nombre/unidad), leído de Influx
-    en vez de en vivo de Kunak. -7d de margen por si el daemon lleva un tiempo parado."""
+    """ Leído de Influx en vez de en vivo de Kunak. 
+    -7d de margen por si el daemon lleva un tiempo parado."""
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()
 
@@ -112,6 +115,7 @@ def query_latest_elements(device_id: str):
     return elements
 
 
+# Histórico de lecturas de un sensor (measurement: pollution).
 def query_readings_history(hours: int = 24, start: str | None = None, end: str | None = None, field: str | None = None):
     """Si se pasa `start`, se usa un rango absoluto [start, end] (end por defecto = ahora),
     ignorando `hours`. Si no, se mantiene el comportamiento anterior (últimas `hours` horas)."""

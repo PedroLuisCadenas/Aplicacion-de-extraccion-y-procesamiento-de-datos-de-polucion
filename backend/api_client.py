@@ -1,8 +1,11 @@
+#Cliente HTTP para la API REST de Kunak, la fuente de datos real de polución.
+
 import threading
 import time
 import requests
 from config import KUNAK_BASE_URL, KUNAK_USERNAME, KUNAK_PASSWORD, KUNAK_DEVICE_ID
 
+# Tope de lecturas que Kunak devuelve en una sola respuesta de reads/from.
 MAX_READS_PER_REQUEST = 4000
 
 # Ventana de búsqueda para get_device_readings(): debe cubrir el intervalo de
@@ -19,6 +22,7 @@ _MIN_REQUEST_INTERVAL = 1.0 / KUNAK_MAX_REQUESTS_PER_SECOND
 _RATE_LIMIT_LOCK = threading.Lock()
 _last_request_time = 0.0
 
+# Nº de reintentos ante un 429 (rate limit) antes de que salte el error.
 MAX_RETRIES_ON_429 = 3
 
 
@@ -38,10 +42,12 @@ class KunakClient:
     def __init__(self):
         self.base_url = KUNAK_BASE_URL
         self.session = requests.Session()
+        # Basic Auth en cada petición.
         self.session.auth = (KUNAK_USERNAME, KUNAK_PASSWORD)
 
     def _request(self, method, path, params=None, json=None):
         url = f"{self.base_url}/{path}"
+        """Lanza una petición aplicando el throttle global y reintentos por 429."""
 
         for attempt in range(MAX_RETRIES_ON_429 + 1):
             _throttle()
@@ -63,29 +69,29 @@ class KunakClient:
         return self._request("POST", path, json=json)
 
     def get_user_info(self, user_id):
+        """GET users/{user_id}/info — datos de la cuenta del usuario."""
         return self._get(f"users/{user_id}/info")
 
     def list_devices(self, user_id):
+        """GET devices/list/{user_id} — lista de dispositivos del usuario."""
         return self._get(f"devices/list/{user_id}")
 
     def get_device_info(self, device_id):
+        """GET devices/{device_id}/info — datos del dispositivo."""
         return self._get(f"devices/{device_id}/info")
 
     def get_elements_details(self, device_id):
-        """Lista los elementos (sensores) de un dispositivo, con su unidad de medida."""
+        """ GET de la lista de elementos (sensores) de un dispositivo, con su unidad de medida."""
         return self._get(f"devices/{device_id}/elementsDetails")
 
     def get_elements_reads(self, device_id, sensors, ts, number=1000):
-        """Lecturas de varios sensores a la vez, posteriores a `ts` (ms desde epoch)."""
+        """GET de las lecturas de varios sensores a la vez, posteriores a `ts` (ms desde epoch)."""
         payload = {"sensors": sensors, "ts": ts, "number": number}
         return self._post(f"devices/{device_id}/reads/from", json=payload)
 
 
 def _normalize_elements(raw):
-    """Normaliza la respuesta de /elementsDetails a una lista de dicts {id, name, unit}.
-
-    La API no da un nombre legible aparte de `tag`, así que `name` es igual a `id`.
-    """
+    """Normaliza la respuesta de /elementsDetails a una lista de dicts {id, name, unit}."""
     if isinstance(raw, dict):
         raw = raw.get("elements", raw.get("data", raw.get("items", [])))
 
@@ -205,6 +211,7 @@ def get_device_readings(device_id=None, elements=None):
         except (TypeError, ValueError):
             continue
 
+        # El timestamp del punto es el de la lectura más reciente
         if latest["ts"] and (timestamp is None or latest["ts"] > timestamp):
             timestamp = latest["ts"]
 

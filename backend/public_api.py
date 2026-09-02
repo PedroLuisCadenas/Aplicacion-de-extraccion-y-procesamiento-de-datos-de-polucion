@@ -1,3 +1,8 @@
+"""API pública para la aplicación y para uso externo.
+
+Se expone en la ruta /api/v1 y requiere una API Key
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 from config import KUNAK_DEVICE_ID, PUBLIC_API_KEY
@@ -10,6 +15,7 @@ from influx_reader import (
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+# Verifica la API Key en cada petición
 def verify_api_key(key: str = Depends(api_key_header)):
     if key != PUBLIC_API_KEY:
         raise HTTPException(
@@ -19,6 +25,7 @@ def verify_api_key(key: str = Depends(api_key_header)):
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(verify_api_key)])
 
+# Endpoints de la API pública
 @router.get("/device/info/latest")
 def get_latest_device_info():
     return query_latest_device_info()
@@ -39,5 +46,5 @@ def get_readings_history(hours: int = 24, start: str | None = None, end: str | N
 
 @router.get("/device/elements")
 def get_device_elements():
-    """Catálogo de sensores del dispositivo, leído de InfluxDB (lo escribe el daemon)."""
+    """Catálogo de sensores del dispositivo, leído de InfluxDB."""
     return query_latest_elements(KUNAK_DEVICE_ID)

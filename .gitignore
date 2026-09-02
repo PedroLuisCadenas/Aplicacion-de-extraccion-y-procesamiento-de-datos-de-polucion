@@ -2,6 +2,7 @@
 __pycache__/
 CLAUDE.md
 backend/config.py
+backend/backfill.py
 frontend/pollution-app/src/environments/environment.ts
 frontend/pollution-app/src/environments/environment.development.ts
 NOTAS_PROYECTO.md

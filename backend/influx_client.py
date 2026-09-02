@@ -1,16 +1,21 @@
+"""Escritura en InfluxDB. Cada función abre su propio cliente, escribe de forma
+síncrona y lo cierra"""
+
+#Measurements de InfluxDB: pollution, device_info, device_elements ,user_info 
+
 import datetime
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
 
-
+#Escribe los datos de lectura de un dispositivo en InfluxDB (measurement: pollution).
 def write_readings(data: dict, device_id: str = "unknown"):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
     point = Point("pollution").tag("device_id", device_id)
 
-    # Timestamp from Kunak comes in milliseconds UTC
+    # El timestamp de Kunak viene en milisegundos UTC
     ts_ms = data.get("timestamp_ms")
     if ts_ms:
         point = point.time(
@@ -30,6 +35,7 @@ def write_readings(data: dict, device_id: str = "unknown"):
     print("Datos escritos en InfluxDB correctamente")
 
 
+#Escribe la información del dispositivo en InfluxDB (measurement: device_info)
 def write_device_info(info: dict, device_id: str):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
@@ -56,6 +62,7 @@ def write_device_info(info: dict, device_id: str):
     print("Info del dispositivo escrita en InfluxDB correctamente")
 
 
+#Escribe el catálogo de sensores del dispositivo en InfluxDB (measurement: device_elements)
 def write_elements_catalog(elements: list, device_id: str):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
@@ -84,6 +91,7 @@ def write_elements_catalog(elements: list, device_id: str):
     print("Catálogo de sensores escrito en InfluxDB correctamente")
 
 
+#Escribe la información del usuario en InfluxDB (measurement: user_info)
 def write_user_info(info: dict, user_id: str):
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
