@@ -4,6 +4,6 @@
 
 export const environment = {
   production: true,   // true en producción, false en desarrollo
-  apiUrl: 'http://localhost:8200',
+  apiUrl: 'http://<IP-de-tu-máquina>:8200',
   apiKey: '<clave-api>',
 };

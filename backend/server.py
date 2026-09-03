@@ -19,7 +19,7 @@ app = FastAPI(title="TFG Pollution API")
 # CORS: solo se permite el origen del frontend Angular
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["http://localhost:4200", "http://192.168.1.143:4200"], # Cambia a la IP de tu máquina si quieres permitir el acceso desde otros dispositivos
     allow_methods=["GET"],
     allow_headers=["*"],
 )
