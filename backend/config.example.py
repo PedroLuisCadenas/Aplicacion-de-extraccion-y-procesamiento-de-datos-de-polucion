@@ -3,11 +3,13 @@
 # `config.py` contiene credenciales, está en .gitignore y NUNCA se sube al repositorio.
 # El código siempre importa de `config.py`; este archivo solo documenta qué variables hacen falta.
 
-# --- InfluxDB (base de datos time-series donde se almacenan las lecturas) ---
-INFLUX_URL = "http://localhost:8086" # INFLUX_URL:    dirección de la instancia local de InfluxDB.
-INFLUX_TOKEN = "<tu-token-influxdb>" # INFLUX_TOKEN:  token de acceso generado en InfluxDB (permisos de lectura/escritura sobre el bucket).
-INFLUX_ORG = "mi-org"                # INFLUX_ORG:    organización dentro de InfluxDB.
-INFLUX_BUCKET = "pruebas"            # INFLUX_BUCKET: bucket (equivalente a "base de datos") donde se escriben los measurements.
+# --- InfluxDB 1.x (base de datos de series temporales) --- 
+INFLUX_HOST = "127.0.0.1"   # INFLUX_HOST:     host o IP del servidor, (usa IP, no "localhost").
+INFLUX_PORT = 8086          # INFLUX_PORT:     puerto HTTP de InfluxDB.
+INFLUX_SSL = False          # INFLUX_SSL:      True si el servidor usa https.
+INFLUX_DATABASE = "pruebas" # INFLUX_DATABASE: base de datos.
+INFLUX_USERNAME = ""        # INFLUX_USERNAME: usuario; vacío si el servidor no tiene autenticación activada.
+INFLUX_PASSWORD = ""        # INFLUX_PASSWORD: contraseña.
 
 # --- API de Kunak (fuente de datos real de polución) ---
 

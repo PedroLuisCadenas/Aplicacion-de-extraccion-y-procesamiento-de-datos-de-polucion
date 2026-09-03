@@ -5,7 +5,7 @@ Se arranca ejecutando el comando 'python server.py'
 En la dirección http://localhost:8200/docs se puede ver la documentación
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import KUNAK_DEVICE_ID
 from public_api import router as public_api_router
@@ -28,7 +28,7 @@ app.add_middleware(
 app.include_router(public_api_router)
 
 # Endpoint interno para mostrar la info de usuario en la aplicación web
-@app.get("/api/user/info")
+@app.get("/api/user/info", include_in_schema=False)
 def get_latest_user_info():
     return query_latest_user_info()
 
