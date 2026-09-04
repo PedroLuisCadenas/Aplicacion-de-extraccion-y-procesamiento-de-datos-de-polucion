@@ -27,36 +27,36 @@ def _client():
     )
 
 
-# Escribe una lectura de un dispositivo en InfluxDB (measurement: pollution).
-def write_readings(data: dict, device_id: str = "unknown"):
-    fields = {}
-    for field, value in data.items():
-        if field == "timestamp_ms":
-            continue
-        try:
-            fields[field] = float(value)
-        except (TypeError, ValueError):
-            pass
+# Escribe lecturas de varios sensores (measurement: pollution) 
+# Lo usan el daemon (ventana de cada ciclo) y backfill.py.
+def write_readings_bulk(reads_by_sensor: dict, device_id: str = "unknown"):
+    fields_by_ts = {}
+    for sensor, reads in reads_by_sensor.items():
+        for r in reads:
+            ts = r.get("ts")
+            if ts is None:
+                continue
+            try:
+                fields_by_ts.setdefault(int(ts), {})[sensor] = float(r["value"])
+            except (TypeError, ValueError):
+                continue
 
-    if not fields:
-        print("Sin lecturas numéricas que escribir")
-        return
-
-    point = {
-        "measurement": "pollution",
-        "tags": {"device_id": device_id},
-        "fields": fields,
-    }
-    # El timestamp de Kunak viene en milisegundos; con time_precision="ms" el
-    # cliente lo interpreta bien (por defecto asumiría nanosegundos).
-    ts_ms = data.get("timestamp_ms")
-    if ts_ms:
-        point["time"] = int(ts_ms)
+    points = [
+        {
+            "measurement": "pollution",
+            "tags": {"device_id": device_id},
+            "time": ts,
+            "fields": fields,
+        }
+        for ts, fields in fields_by_ts.items()
+    ]
+    if not points:
+        return 0
 
     client = _client()
-    client.write_points([point], time_precision="ms")
+    client.write_points(points, time_precision="ms")
     client.close()
-    print("Datos escritos en InfluxDB correctamente")
+    return len(points)
 
 
 # Escribe la información del dispositivo en InfluxDB (measurement: device_info).

@@ -4,13 +4,15 @@ Se arranca ejecutando el comando 'python main.py'
 """
 
 import time
-from api_client import KunakClient, get_device_readings, list_device_elements
-from influx_client import write_device_info, write_user_info, write_readings, write_elements_catalog
+from api_client import KunakClient, get_device_readings_window, list_device_elements
+from influx_client import write_device_info, write_user_info, write_readings_bulk, write_elements_catalog
 from config import KUNAK_DEVICE_ID, KUNAK_USERNAME
 
-# La API de Kunak tiene un límite de 10.000 peticiones/mes. Con una petición
-# combinada por sondeo, 15 min dejan margen de sobra para el resto de consultas.
-POLL_INTERVAL_SECONDS = 15 * 60
+# La API de Kunak tiene un límite de 10.000 peticiones/mes. Con 4 peticiones por
+# ciclo, sondear cada 30 min son ~5.760/mes, dejando margen para el resto
+# (backfill puntual, alguna consulta manual). La ventana de lecturas
+# (READINGS_SEARCH_WINDOW_MINUTES en api_client.py) va ligada a este intervalo.
+POLL_INTERVAL_SECONDS = 30 * 60
 
 
 # Comprueba la configuración y lanza el bucle de recolección de Kunak.
@@ -36,8 +38,9 @@ def main():
             write_elements_catalog(elements, device_id=KUNAK_DEVICE_ID)
 
             # Lecturas de los sensores.
-            info = get_device_readings(device_id=KUNAK_DEVICE_ID, elements=elements)
-            write_readings(info, device_id=KUNAK_DEVICE_ID)
+            readings = get_device_readings_window(device_id=KUNAK_DEVICE_ID, elements=elements)
+            n = write_readings_bulk(readings, device_id=KUNAK_DEVICE_ID)
+            print(f"{n} puntos de lecturas escritos en InfluxDB")
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(POLL_INTERVAL_SECONDS)

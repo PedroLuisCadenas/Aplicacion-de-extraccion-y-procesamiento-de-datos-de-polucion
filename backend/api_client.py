@@ -12,7 +12,7 @@ MAX_READS_PER_REQUEST = 4000
 # sondeo del daemon (main.py) con margen, pero mantenerse muy por debajo de
 # MAX_READS_PER_REQUEST para el conjunto de todos los sensores combinados, o la
 # respuesta se trunca antes de llegar a las lecturas más recientes.
-READINGS_SEARCH_WINDOW_MINUTES = 20
+READINGS_SEARCH_WINDOW_MINUTES = 35
 
 # La API de Kunak limita a 10 peticiones/segundo. Se deja margen de seguridad
 # y se comparte entre todas las instancias de KunakClient (el daemon y el
@@ -177,8 +177,8 @@ def list_device_elements(device_id=None):
     return _normalize_elements(raw)
 
 
-def get_device_readings(device_id=None, elements=None):
-    """Última lectura de cada sensor del dispositivo, para el daemon de recolección.
+def get_device_readings_window(device_id=None, elements=None):
+    """Todas las lecturas de la ventana de sondeo reciente.
 
     Acepta `elements` ya obtenidos (p.ej. por el propio daemon, para escribir
     también el catálogo) y así evita pedirlos dos veces."""
@@ -196,26 +196,4 @@ def get_device_readings(device_id=None, elements=None):
 
     sensors = [element["id"] for element in elements]
     raw = client.get_elements_reads(device_id, sensors, ts=ts, number=MAX_READS_PER_REQUEST)
-    reads_by_sensor = _normalize_multi_reads(raw)
-
-    data = {}
-    timestamp = None
-
-    for element_id, reads in reads_by_sensor.items():
-        if not reads:
-            continue
-
-        latest = max(reads, key=lambda r: r["ts"] or 0)
-        try:
-            data[element_id] = float(latest["value"])
-        except (TypeError, ValueError):
-            continue
-
-        # El timestamp del punto es el de la lectura más reciente
-        if latest["ts"] and (timestamp is None or latest["ts"] > timestamp):
-            timestamp = latest["ts"]
-
-    if timestamp:
-        data["timestamp_ms"] = int(timestamp)
-
-    return data
+    return _normalize_multi_reads(raw)
