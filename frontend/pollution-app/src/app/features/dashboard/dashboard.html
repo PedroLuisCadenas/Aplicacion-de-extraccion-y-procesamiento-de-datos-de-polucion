@@ -30,27 +30,4 @@
       </div>
     }
   </div>
-
-  <div class="device-summary-card">
-    <h2>Dispositivo</h2>
-    @if (deviceInfo(); as info) {
-      <div class="device-summary-fields">
-        <div class="field">
-          <span class="label">Batería</span>
-          <span class="field-value">{{ info['battery_level'] }} %</span>
-        </div>
-        <div class="field">
-          <span class="label">Señal</span>
-          <span class="field-value">{{ info['rx_signal_level'] }} dBm</span>
-        </div>
-        <div class="field">
-          <span class="label">Tag</span>
-          <span class="field-value">{{ info['tag'] }}</span>
-        </div>
-      </div>
-    } @else {
-      <p class="loading">Cargando información del dispositivo…</p>
-    }
-    <a routerLink="/informacion" class="device-summary-link">Ver más detalles →</a>
-  </div>
 </section>

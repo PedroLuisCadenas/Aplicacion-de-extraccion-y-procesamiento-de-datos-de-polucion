@@ -1,6 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Api, DeviceElement, DeviceInfo } from '../../core/api';
 import { SENSOR_DESCRIPTIONS } from '../../core/sensor-catalog';
 
@@ -10,7 +9,7 @@ const DEVICE_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
   tag: { label: 'Tag' },
   serial_number: { label: 'Número de serie' },
   battery_level: { label: 'Nivel de batería', unit: '%' },
-  rx_signal_level: { label: 'Señal de recepción', unit: 'dBm' },
+  rx_signal_level: { label: 'RSSI 4G', unit: 'dBm' },
 };
 
 const USER_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
@@ -38,7 +37,7 @@ function formatEntries(
 
 @Component({
   selector: 'app-informacion',
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './informacion.html',
   styleUrl: './informacion.css',
 })

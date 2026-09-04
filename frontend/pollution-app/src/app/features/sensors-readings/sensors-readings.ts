@@ -26,8 +26,8 @@ export class SensorsReadings implements OnInit {
 
   protected readonly deviceElements = signal<DeviceElement[]>([]);
   protected readonly selectedElementId = signal<string | ''>('');
-  protected readonly hours = signal<number>(24);
-  protected readonly selectedHourPresets = signal<number | 'custom'>(24);
+  protected readonly hours = signal<number>(6);
+  protected readonly selectedHourPresets = signal<number | 'custom'>(6);
   protected readonly hourPresets = HOUR_PRESETS;
   protected readonly readings = signal<ReadingsHistoryPoint[]>([]);
   protected readonly loading = signal(false);
@@ -36,6 +36,14 @@ export class SensorsReadings implements OnInit {
  protected readonly selectedElement = computed(
   () => this.deviceElements().find((element) => element.id === this.selectedElementId()) ?? null,
 );
+
+  onSensorChange(id: string): void {
+    this.selectedElementId.set(id);
+    if (!id) {
+      this.readings.set([]);
+      this.error.set(null);
+    }
+  }
 
   selectHoursPreset(preset: number | 'custom'): void {
     this.selectedHourPresets.set(preset);

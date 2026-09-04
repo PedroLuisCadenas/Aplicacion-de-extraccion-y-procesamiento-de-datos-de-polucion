@@ -1,11 +1,15 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { RouterLink } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
-import { Api, DeviceElement, DeviceInfo, LatestReadings, ReadingsHistoryPoint } from '../../core/api';
+import { Api, DeviceElement, LatestReadings, ReadingsHistoryPoint } from '../../core/api';
 
-const KEY_SENSOR_NAMES = ['Heat Index', 'Humidity ext', 'NO2 GCc', 'Temp', 'Temp ext'];
+const KEY_SENSOR_NAMES = [
+  'Temp ext', 'Heat Index', 'Humidity ext', 'Pressure', 'AQI',
+  'NO2 GCc', 'O3 GCc', 'PM1', 'PM2.5', 'PM10',
+  'W Speed AVG', 'W Vane AVG',
+];
+
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
@@ -13,7 +17,7 @@ function round2(value: number): number {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, BaseChartDirective],
+  imports: [BaseChartDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -23,7 +27,6 @@ export class Dashboard implements OnInit {
 
   protected readonly deviceElements = signal<DeviceElement[]>([]);
   protected readonly latestReadings = signal<LatestReadings>({});
-  protected readonly deviceInfo = signal<DeviceInfo | null>(null);
   protected readonly historyRows = signal<ReadingsHistoryPoint[]>([]);
   protected readonly miniChartsOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
@@ -57,10 +60,6 @@ export class Dashboard implements OnInit {
     this.api.getLatestReadings().subscribe({
       next: (readings) => this.latestReadings.set(readings),
       error: () => this.error.set('No se han podido cargar los datos del dispositivo.'),
-    });
-    this.api.getLatestDeviceInfo().subscribe({
-      next: (info) => this.deviceInfo.set(info),
-      error: () => this.error.set('No se ha podido cargar la información del dispositivo.'),
     });
     this.api.getReadingsHistory({ hours: 24 * 7 }).subscribe({
       next: (history) => this.historyRows.set(history),

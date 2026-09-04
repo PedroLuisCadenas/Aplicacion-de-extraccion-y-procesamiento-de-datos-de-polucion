@@ -1,8 +1,8 @@
 <section class="sensors-readings">
-  <h2>Lecturas por sensor</h2>
+  <h2>Datos medioambientales</h2>
 
   <div class="controls">
-    <select [ngModel]="selectedElementId()" (ngModelChange)="selectedElementId.set($event)">
+    <select [ngModel]="selectedElementId()" (ngModelChange)="onSensorChange($event)">
       <option value="">Selecciona un sensor</option>
       @for (element of deviceElements(); track element.id){
         <option [value]="element.id">{{ element.name }}</option>
