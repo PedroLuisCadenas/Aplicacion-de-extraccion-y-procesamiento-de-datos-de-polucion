@@ -1,7 +1,10 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api, DeviceElement, DeviceInfo } from '../../core/api';
 import { SENSOR_DESCRIPTIONS } from '../../core/sensor-catalog';
+
+const MAX_BACKFILL_DIAS = 60; // 2 meses
 
 const DEVICE_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
   tag: { label: 'Tag' },
@@ -35,7 +38,7 @@ function formatEntries(
 
 @Component({
   selector: 'app-informacion',
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './informacion.html',
   styleUrl: './informacion.css',
 })
@@ -48,6 +51,10 @@ export class Informacion implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly currentPage = signal(1);
   private readonly PAGE_SIZE = 10;
+
+  protected readonly backfillDias = signal<number>(14);
+  protected readonly backfillMsg = signal<string | null>(null);
+  protected readonly backfillLoading = signal(false);
 
   protected readonly deviceInfoEntries = computed(() =>
     formatEntries(this.deviceInfo(), DEVICE_INFO_FIELDS),
@@ -91,6 +98,29 @@ export class Informacion implements OnInit {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+  }
+
+  lanzarBackfill(): void {
+    const dias = this.backfillDias();
+    if (!dias || dias < 1 || dias > MAX_BACKFILL_DIAS) {
+      this.backfillMsg.set(`El número de días debe estar entre 1 y ${MAX_BACKFILL_DIAS} (2 meses).`);
+      return;
+    }
+
+    this.backfillLoading.set(true);
+    this.backfillMsg.set(null);
+    this.api.runBackfill(dias).subscribe({
+      next: (res) => {
+        this.backfillMsg.set(
+          `Backfill de ${res.days} días iniciado. Puede tardar unos minutos; revisa las gráficas para ver los datos.`,
+        );
+        this.backfillLoading.set(false);
+      },
+      error: (err) => {
+        this.backfillMsg.set(err?.error?.detail ?? 'No se ha podido lanzar el backfill.');
+        this.backfillLoading.set(false);
+      },
+    });
   }
 
   ngOnInit(): void {

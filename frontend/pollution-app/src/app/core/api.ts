@@ -69,4 +69,13 @@ export class Api {
   getDeviceElements(): Observable<DeviceElement[]> {
     return this.http.get<DeviceElement[]>(`${this.baseUrl}/api/v1/device/elements`);
   }
+
+  // Lanza el backfill del histórico (endpoint interno, ejecuta backfill.py en el backend)
+  runBackfill(days: number): Observable<{ status: string; days: number }> {
+    return this.http.post<{ status: string; days: number }>(
+      `${this.baseUrl}/api/backfill`,
+      null,
+      { params: { days } },
+    );
+  }
 }

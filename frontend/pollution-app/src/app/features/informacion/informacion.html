@@ -45,6 +45,32 @@
       }
     </div>
   </div>
+
+  <div class="backfill-card">
+    <h2>Rellenar histórico</h2>
+    <p class="hint">
+      Descarga de Kunak y guarda en la base de datos los últimos N días de lecturas de todos
+      los sensores. Máximo 60 días (2 meses).
+    </p>
+    <div class="backfill-controls">
+      <label for="backfill-dias">Días</label>
+      <input
+        id="backfill-dias"
+        type="number"
+        min="1"
+        max="60"
+        [ngModel]="backfillDias()"
+        (ngModelChange)="backfillDias.set($event)"
+      />
+      <button type="button" (click)="lanzarBackfill()" [disabled]="backfillLoading()">
+        {{ backfillLoading() ? 'Lanzando…' : 'Rellenar' }}
+      </button>
+    </div>
+    @if (backfillMsg()) {
+      <p class="backfill-msg">{{ backfillMsg() }}</p>
+    }
+  </div>
+
   <div class="sensor-catalog">
     <h2>Sensores</h2>
     @if (sensorCatalog().length) {
