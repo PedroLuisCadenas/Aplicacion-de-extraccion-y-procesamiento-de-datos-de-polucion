@@ -30,7 +30,7 @@ def backfill(dias):
     sensores = [e["id"] for e in list_device_elements(KUNAK_DEVICE_ID)]
     if not sensores:
         print(f"No hay sensores para el dispositivo {KUNAK_DEVICE_ID}.")
-        return
+        return 0
 
     ahora_ms = int(time.time() * 1000)
     cursor = ahora_ms - dias * 24 * 60 * 60 * 1000
@@ -56,6 +56,7 @@ def backfill(dias):
         cursor = max(marcas) + 1
 
     print(f"Hecho: {total} puntos escritos en InfluxDB.")
+    return total
 
 
 if __name__ == "__main__":
