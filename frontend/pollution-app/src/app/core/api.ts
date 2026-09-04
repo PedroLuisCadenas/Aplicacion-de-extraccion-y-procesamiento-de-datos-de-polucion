@@ -2,8 +2,9 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { SENSOR_LABELS } from './sensor-catalog';
 
 export interface DeviceInfo {
   [field: string]: string | number | boolean;
@@ -65,10 +66,18 @@ export class Api {
     });
   }
 
-  // Trae la lista de elementos del dispositivo
+    // Trae la lista de elementos del dispositivo, con el nombre traducido al español
   getDeviceElements(): Observable<DeviceElement[]> {
-    return this.http.get<DeviceElement[]>(`${this.baseUrl}/api/v1/device/elements`);
+    return this.http.get<DeviceElement[]>(`${this.baseUrl}/api/v1/device/elements`).pipe(
+      map((elements) =>
+        elements.map((element) => ({
+          ...element,
+          name: SENSOR_LABELS[element.id] ?? element.name,
+        })),
+      ),
+    );
   }
+
 
   // Lanza el backfill del histórico (endpoint interno, ejecuta backfill.py en el backend)
   runBackfill(days: number): Observable<{ status: string; days: number }> {

@@ -71,7 +71,7 @@ export class Dashboard implements OnInit {
   protected readonly cardKPI = computed(() => {
     const readings = this.latestReadings();
     const elements = this.deviceElements();
-    const kpiElements = elements.filter((element) => KEY_SENSOR_NAMES.includes(element.name));
+    const kpiElements = elements.filter((element) => KEY_SENSOR_NAMES.includes(element.id));
     return kpiElements.map((element) => {
       const points = this.historyRows()
         .filter((row) => row[element.id] != null)
