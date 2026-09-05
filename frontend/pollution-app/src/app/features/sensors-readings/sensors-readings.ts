@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { Api, DeviceElement, ReadingsHistoryPoint } from '../../core/api';
+import { Api, DeviceElement, ReadingsHistoryPoint, ReadingsHistoryParams } from '../../core/api';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 
@@ -15,6 +15,11 @@ function toCsvValue(value: string | number): string {
   return typeof value === 'number' ? value.toString().replace('.', ',') : value;
 }
 
+function toDatetimeLocalInput (date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 @Component({
   selector: 'app-sensors-readings',
   imports: [FormsModule, DatePipe],
@@ -28,6 +33,9 @@ export class SensorsReadings implements OnInit {
   protected readonly selectedElementId = signal<string | ''>('');
   protected readonly hours = signal<number>(6);
   protected readonly selectedHourPresets = signal<number | 'custom'>(6);
+  protected readonly mode = signal<'hours' | 'range'>('hours');
+  protected readonly rangeStart = signal<string>('');
+  protected readonly rangeEnd = signal<string>('');
   protected readonly hourPresets = HOUR_PRESETS;
   protected readonly readings = signal<ReadingsHistoryPoint[]>([]);
   protected readonly loading = signal(false);
@@ -43,16 +51,28 @@ export class SensorsReadings implements OnInit {
       this.readings.set([]);
       this.error.set(null);
     }
+    else if (this.selectedHourPresets() !== 'custom') {
+      this.loadReadings();
+    }
   }
 
   selectHoursPreset(preset: number | 'custom'): void {
     this.selectedHourPresets.set(preset);
     if (preset !== 'custom') {
       this.hours.set(preset);
+      if (this.selectedElementId()) {
+        this.loadReadings();
+      }
     }
   }
 
-  loadReadings(): void {
+    onCustomModeChange(newMode: 'hours' | 'range'): void {
+    this.mode.set(newMode);
+    this.readings.set([]);
+  }
+
+
+    loadReadings(): void {
     const elementId = this.selectedElementId();
 
     if (!elementId) {
@@ -60,10 +80,27 @@ export class SensorsReadings implements OnInit {
       return;
     }
 
+    let params: ReadingsHistoryParams;
+    if (this.selectedHourPresets() !== 'custom' || this.mode() === 'hours') {
+      params = { hours: this.hours() };
+    } else {
+      if (!this.rangeStart()) {
+        this.error.set('Indica al menos la fecha/hora de inicio del rango.');
+        return;
+      }
+      if (!this.rangeEnd()) {
+        this.rangeEnd.set(toDatetimeLocalInput(new Date()));
+      }
+      params = {
+        start: new Date(this.rangeStart()).toISOString(),
+        end: new Date(this.rangeEnd()).toISOString(),
+      };
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.getReadingsHistory({ hours: this.hours() }, elementId).subscribe({
+    this.api.getReadingsHistory(params, elementId).subscribe({
       next: (readings) => {
         this.readings.set(readings);
         this.loading.set(false);
@@ -74,6 +111,7 @@ export class SensorsReadings implements OnInit {
       },
     });
   }
+
 
   ngOnInit(): void {
     this.api.getDeviceElements().subscribe({

@@ -150,3 +150,13 @@ tbody tr:hover {
 tbody tr:last-child td {
   border-bottom: none;
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: #4a5b54;
+  font-weight: 500;
+}
+

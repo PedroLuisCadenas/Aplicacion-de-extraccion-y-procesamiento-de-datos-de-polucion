@@ -166,7 +166,11 @@ export class Charts implements OnInit {
   applyPicker(): void {
     this.selectedIds.set(new Set(this.draftSelectedIds()));
     this.isPickerOpen.set(false);
+    if (this.selectedIds().size > 0) {
+      this.generateChart();
+    }
   }
+
 
   toggleDraftSensor(id: string): void {
     const draftSelectedIds = new Set(this.draftSelectedIds());

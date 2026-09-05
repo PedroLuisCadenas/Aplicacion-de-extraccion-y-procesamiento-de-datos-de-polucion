@@ -24,11 +24,38 @@
       </label>
     </div>
 
-    @if (selectedHourPresets() === 'custom') {
-      <input type="number" class="hours-input" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+        @if (selectedHourPresets() === 'custom') {
+      <div class="range-mode">
+        <label>
+          <input type="radio" name="customMode" value="hours"
+              [ngModel]="mode()" (ngModelChange)="onCustomModeChange($event)">
+          <span>Nº de horas</span>
+        </label>
+        <label>
+          <input type="radio" name="customMode" value="range"
+              [ngModel]="mode()" (ngModelChange)="onCustomModeChange($event)">
+          <span>Rango de fechas</span>
+        </label>
+      </div>
+
+      @if (mode() === 'hours') {
+        <input type="number" class="hours-input" [ngModel]="hours()" (ngModelChange)="hours.set($event)" placeholder="Horas">
+      }
+
+      @if (mode() === 'range') {
+        <label class="field">
+          <span>Desde</span>
+          <input type="datetime-local" [ngModel]="rangeStart()" (ngModelChange)="rangeStart.set($event)">
+        </label>
+        <label class="field">
+          <span>Hasta (opcional)</span>
+          <input type="datetime-local" [ngModel]="rangeEnd()" (ngModelChange)="rangeEnd.set($event)">
+        </label>
+      }
+
+      <button (click)="loadReadings()">Obtener lecturas</button>
     }
 
-    <button (click)="loadReadings()">Obtener lecturas</button>
   </div>
 
   @if (error()) {
