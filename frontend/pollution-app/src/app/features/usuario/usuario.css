@@ -1,0 +1,55 @@
+.usuario {
+  padding: 0;
+  max-width: 480px;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: #1b3a2f;
+}
+
+.info-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.info-card tbody td {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #eef1f0;
+}
+
+.info-card tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.info-card td:first-child {
+  width: 45%;
+  color: #6b7a74;
+  font-weight: 500;
+}
+
+.info-card td:last-child {
+  text-align: right;
+  color: #1b3a2f;
+  font-weight: 600;
+}
+
+.info-card p {
+  color: #6b7a74;
+  font-style: italic;
+  margin: 0;
+}

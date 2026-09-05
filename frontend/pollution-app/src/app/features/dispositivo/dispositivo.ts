@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Api, DeviceElement, DeviceInfo } from '../../core/api';
-import { SENSOR_DESCRIPTIONS } from '../../core/sensor-catalog';
+import { Api, DeviceElement, DeviceInfo, LatestReadings } from '../../core/api';
 
 const MAX_BACKFILL_DIAS = 60; // 2 meses
 
@@ -10,15 +9,6 @@ const DEVICE_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
   serial_number: { label: 'Número de serie' },
   battery_level: { label: 'Nivel de batería', unit: '%' },
   rx_signal_level: { label: 'RSSI 4G', unit: 'dBm' },
-};
-
-const USER_INFO_FIELDS: Record<string, { label: string; unit?: string }> = {
-  account_profile: { label: 'Tipo de perfil' },
-  account_type: { label: 'Tipo de cuenta' },
-  email: { label: 'Email' },
-  level: { label: 'Nivel' },
-  name: { label: 'Nombre' },
-  surname: { label: 'Apellidos' },
 };
 
 function formatEntries(
@@ -36,20 +26,18 @@ function formatEntries(
 }
 
 @Component({
-  selector: 'app-informacion',
+  selector: 'app-dispositivo',
   imports: [FormsModule],
-  templateUrl: './informacion.html',
-  styleUrl: './informacion.css',
+  templateUrl: './dispositivo.html',
+  styleUrl: './dispositivo.css',
 })
-export class Informacion implements OnInit {
+export class Dispositivo implements OnInit {
   private readonly api = inject(Api);
 
   protected readonly deviceInfo = signal<DeviceInfo | null>(null);
-  protected readonly userInfo = signal<any | null>(null);
   protected readonly deviceElements = signal<DeviceElement[]>([]);
+  protected readonly latestReadings = signal<LatestReadings>({});
   protected readonly error = signal<string | null>(null);
-  protected readonly currentPage = signal(1);
-  private readonly PAGE_SIZE = 10;
 
   protected readonly backfillDias = signal<number>(14);
   protected readonly backfillMsg = signal<string | null>(null);
@@ -59,45 +47,15 @@ export class Informacion implements OnInit {
     formatEntries(this.deviceInfo(), DEVICE_INFO_FIELDS),
   );
 
-  protected readonly userInfoEntries = computed(() =>
-    formatEntries(this.userInfo(), USER_INFO_FIELDS),
-  );
-
-  protected readonly sensorCatalog = computed(() => {
-    const elements = this.deviceElements();
-    return elements.map((element) => ({
-      id: element.id,
-      name: element.name,
-      unit: element.unit,
-      description: SENSOR_DESCRIPTIONS[element.id] ?? 'Descripción no disponible',
-    }));
-  });
-
-  protected readonly paginatedSensorCatalog = computed(() => {
-    const startIndex = (this.currentPage() - 1) * this.PAGE_SIZE;
-    return this.sensorCatalog().slice(startIndex, startIndex + this.PAGE_SIZE);
-  });
-
-  protected readonly totalPages = computed(() => {
-    return Math.ceil(this.sensorCatalog().length / this.PAGE_SIZE);
-  });
-
-  protected readonly pageRangeStart = computed(() => {
-    if (this.sensorCatalog().length === 0) {
-      return 0;
+  // Temperatura interna del dispositivo (distinta de la ambiental, que se muestra en Inicio).
+  protected readonly internalTemp = computed(() => {
+    const element = this.deviceElements().find((e) => e.id === 'Temp');
+    const value = this.latestReadings()['Temp'];
+    if (!element || value == null) {
+      return null;
     }
-    return (this.currentPage() - 1) * this.PAGE_SIZE + 1;
+    return { value, unit: element.unit };
   });
-
-  protected readonly pageRangeEnd = computed(() => {
-    return Math.min(this.currentPage() * this.PAGE_SIZE, this.sensorCatalog().length);
-  });
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-    }
-  }
 
   lanzarBackfill(): void {
     const dias = this.backfillDias();
@@ -123,20 +81,17 @@ export class Informacion implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getDeviceElements().subscribe({
-      next: (elements) => this.deviceElements.set(elements),
-      error: () => this.error.set('No se han podido cargar los sensores del dispositivo.'),
-    });
     this.api.getLatestDeviceInfo().subscribe({
       next: (info) => this.deviceInfo.set(info),
       error: () => this.error.set('No se ha podido cargar la información del dispositivo.'),
     });
-
-    this.api.getUserInfo().subscribe({
-      next: (info) => this.userInfo.set(info),
-      error: () => {
-        this.error.set('No se ha podido cargar la información del usuario.');
-      },
+    this.api.getDeviceElements().subscribe({
+      next: (elements) => this.deviceElements.set(elements),
+      error: () => this.error.set('No se han podido cargar los sensores del dispositivo.'),
+    });
+    this.api.getLatestReadings().subscribe({
+      next: (readings) => this.latestReadings.set(readings),
+      error: () => this.error.set('No se han podido cargar las lecturas del dispositivo.'),
     });
   }
 }

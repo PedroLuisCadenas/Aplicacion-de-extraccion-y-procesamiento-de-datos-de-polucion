@@ -1,0 +1,45 @@
+<section class="ayuda">
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="sensor-catalog">
+    <h2>Catálogo de sensores</h2>
+    @if (sensorCatalog().length) {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Sensor</th>
+              <th>Descripción</th>
+              <th>Unidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sensor of paginatedSensorCatalog(); track sensor.id) {
+              <tr>
+                <td>{{ sensor.name }}</td>
+                <td>{{ sensor.description }}</td>
+                <td>{{ sensor.unit || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-nav">
+            <button type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1">Anterior</button>
+            <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+            <button type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()">Siguiente</button>
+          </div>
+          <span class="pagination-summary">
+            Mostrando {{ pageRangeStart() }} a {{ pageRangeEnd() }} de {{ sensorCatalog().length }} registros
+          </span>
+        </div>
+      </div>
+    }
+
+    @else {
+      <p>Cargando información de los sensores…</p>
+    }
+  </div>
+</section>

@@ -1,0 +1,56 @@
+<section class="dispositivo">
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="info-card">
+    <h2>Dispositivo</h2>
+    @if (deviceInfoEntries().length) {
+      <div class="table-wrapper">
+        <table>
+          <tbody>
+            @for (entry of deviceInfoEntries(); track entry[0]) {
+              <tr>
+                <td>{{ entry[0] }}</td>
+                <td>{{ entry[1] }}</td>
+              </tr>
+            }
+            @if (internalTemp(); as temp) {
+              <tr>
+                <td>Temperatura interna</td>
+                <td>{{ temp.value }} {{ temp.unit }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p>Cargando información del dispositivo…</p>
+    }
+  </div>
+
+  <div class="backfill-card">
+    <h2>Rellenar histórico</h2>
+    <p class="hint">
+      Descarga de Kunak y guarda en la base de datos los últimos N días de lecturas de todos
+      los sensores. Máximo 60 días (2 meses).
+    </p>
+    <div class="backfill-controls">
+      <label for="backfill-dias">Días</label>
+      <input
+        id="backfill-dias"
+        type="number"
+        min="1"
+        max="60"
+        [ngModel]="backfillDias()"
+        (ngModelChange)="backfillDias.set($event)"
+      />
+      <button type="button" (click)="lanzarBackfill()" [disabled]="backfillLoading()">
+        {{ backfillLoading() ? 'Lanzando…' : 'Rellenar' }}
+      </button>
+    </div>
+    @if (backfillMsg()) {
+      <p class="backfill-msg">{{ backfillMsg() }}</p>
+    }
+  </div>
+</section>
