@@ -102,7 +102,7 @@ export class SensorsReadings implements OnInit {
 
     this.api.getReadingsHistory(params, elementId).subscribe({
       next: (readings) => {
-        this.readings.set(readings);
+        this.readings.set([...readings].reverse());
         this.loading.set(false);
       },
       error: () => {

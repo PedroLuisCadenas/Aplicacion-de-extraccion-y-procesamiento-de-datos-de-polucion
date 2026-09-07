@@ -85,7 +85,7 @@
         <tbody>
           @for (row of paginatedHistoryRows(); track row.time) {
             <tr>
-              <td>{{ row.time | date: 'short' }}</td>
+              <td>{{ row.time | date: 'dd/MM/yyyy HH:mm' }}</td>
               @for (element of selectedSensorChips(); track element.id) {
                 <td>{{ row[element.id] }}</td>
               }

@@ -80,7 +80,7 @@
         <tbody>
           @for (r of readings(); track r.time) {
             <tr>
-              <td>{{ r.time | date: 'short' }}</td>
+              <td>{{ r.time | date: 'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ r[selectedElementId()] }}</td>
             </tr>
           }
